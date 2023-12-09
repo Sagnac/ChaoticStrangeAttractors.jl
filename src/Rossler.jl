@@ -30,8 +30,14 @@ function evolve!(attractor::Attractor, axis::Makie.AbstractAxis)
 end
 
 function attract!(attractor::Attractor = Attractor(); t::Real = 125)
+    (; a, b, c, x, y, z) = attractor
+    title = """
+        Rössler attractor
+        a = $a, b = $b, c = $c, x₀ = $x, y₀ = $y, z₀ = $z
+        """
+    title = replace(title, '-' => '\u2212')
     fig = Figure()
-    axis = Axis3(fig[1,1]; title = "Rössler attractor")
+    axis = Axis3(fig[1,1]; title)
     screen = display(GLMakie.Screen(), fig)
     close_timers() = (close(t1); close(t2))
     t1 = Timer(_ -> evolve!(attractor, axis), 0; interval = attractor.dt)
