@@ -2,6 +2,7 @@ module Rossler
 
 export attract!, Attractor
 
+using Printf
 using GLMakie
 
 @kwdef mutable struct Attractor
@@ -72,7 +73,7 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     end
     close_timers() = (close(t1); close(t2))
     attractor.fig = fig
-    screen = display(GLMakie.Screen(), fig)
+    display(GLMakie.Screen(), fig)
     paused = false
     on(play.clicks; update = true) do _
         paused ? close_timers() : start_timers()
@@ -82,6 +83,13 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     return attractor
 end
 
-Base.display(::Attractor) = ()
+function Base.display(attractor::Attractor)
+    events(attractor.fig).window_open[] && return
+    for name ∈ fieldnames(Attractor)
+        name == :dt && break
+        @printf("%s = %.3f\n", name, getfield(attractor, name))
+    end
+    display(GLMakie.Screen(), attractor.fig)
+end
 
 end
