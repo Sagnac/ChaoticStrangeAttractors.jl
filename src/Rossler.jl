@@ -32,13 +32,12 @@ end
 function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "Rössler attractor")
-    screen = display(fig)
+    screen = display(GLMakie.Screen(), fig)
     close_timers() = (close(t1); close(t2))
     t1 = Timer(_ -> evolve!(attractor, axis), 0; interval = attractor.dt)
     t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
-    wait(screen)
-    close_timers()
-    return fig
+    on(window_open -> !window_open && close_timers(), events(fig).window_open)
+    return fig, axis
 end
 
 end
