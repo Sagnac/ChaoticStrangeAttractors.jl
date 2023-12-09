@@ -15,7 +15,24 @@ using GLMakie
     fig::Figure = Figure()
 end
 
-function evolve!(attractor::Attractor, axis::Makie.AbstractAxis)
+@kwdef mutable struct Colors
+    colors::Vector{RGBf} = [
+        RGBf(0.0, 0.0, 0.8), # ~ blue
+        RGBf(0.0, 0.8, 0.0), # ~ green
+        RGBf(0.8, 0.0, 0.0), # ~ red
+        RGBf(0.8, 0.0, 0.8), # ~ magenta
+        RGBf(0.0, 0.8, 0.8), # ~ cyan
+    ]
+    selection::Int = 1
+end
+
+const cycle_colors = Colors()
+
+function (cycle::Colors)()
+    cycle.selection = mod(cycle.selection, 5) + 1
+end
+
+function evolve!(attractor::Attractor, axis::Makie.AbstractAxis, color::RGBf)
     (; a, b, c, x, y, z, dt) = attractor
     dx_dt = -y - z
     dy_dt = x + a * y
@@ -23,7 +40,7 @@ function evolve!(attractor::Attractor, axis::Makie.AbstractAxis)
     x′ = x + dx_dt * dt
     y′ = y + dy_dt * dt
     z′ = z + dz_dt * dt
-    lines!(axis, [x, x′], [y, y′], [z, z′]; color = RGBf(0.0, 0.0, 0.8))
+    lines!(axis, [x, x′], [y, y′], [z, z′]; color)
     attractor.x = x′
     attractor.y = y′
     attractor.z = z′
@@ -32,6 +49,7 @@ end
 
 function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     (; a, b, c, x, y, z) = attractor
+    (; colors, selection) = cycle_colors
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "Rössler attractor")
     fontsize = 16
@@ -45,9 +63,11 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     Label(grid[6,1], L"z_0 = %$z"; fontsize, halign)
     play = Button(grid[7,1]; label = "\u23ef", fontsize)
     colsize!(fig.layout, 1, Aspect(1, 1.0))
+    color = colors[selection]
+    cycle_colors()
     local t1, t2
     function start_timers()
-        t1 = Timer(_ -> evolve!(attractor, axis), 0; interval = attractor.dt)
+        t1 = Timer(_ -> evolve!(attractor, axis, color), 0; interval = attractor.dt)
         t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
     end
     close_timers() = (close(t1); close(t2))
