@@ -31,17 +31,31 @@ end
 
 function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     (; a, b, c, x, y, z) = attractor
-    title = """
-        Rössler attractor
-        a = $a, b = $b, c = $c, x₀ = $x, y₀ = $y, z₀ = $z
-        """
-    title = replace(title, '-' => '\u2212')
     fig = Figure()
-    axis = Axis3(fig[1,1]; title)
-    screen = display(GLMakie.Screen(), fig)
+    axis = Axis3(fig[1,1]; title = "Rössler attractor")
+    fontsize = 16
+    halign = :left
+    grid = GridLayout(fig[1,2]; tellheight = false)
+    Label(grid[1,1], L"a = %$a";   fontsize, halign)
+    Label(grid[2,1], L"b = %$b";   fontsize, halign)
+    Label(grid[3,1], L"c = %$c";   fontsize, halign)
+    Label(grid[4,1], L"x_0 = %$x"; fontsize, halign)
+    Label(grid[5,1], L"y_0 = %$y"; fontsize, halign)
+    Label(grid[6,1], L"z_0 = %$z"; fontsize, halign)
+    play = Button(grid[7,1]; label = "\u23ef", fontsize)
+    colsize!(fig.layout, 1, Aspect(1, 1.0))
+    local t1, t2
+    function start_timers()
+        t1 = Timer(_ -> evolve!(attractor, axis), 0; interval = attractor.dt)
+        t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
+    end
     close_timers() = (close(t1); close(t2))
-    t1 = Timer(_ -> evolve!(attractor, axis), 0; interval = attractor.dt)
-    t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
+    screen = display(GLMakie.Screen(), fig)
+    paused = false
+    on(play.clicks; update = true) do _
+        paused ? close_timers() : start_timers()
+        paused = !paused
+    end
     on(window_open -> !window_open && close_timers(), events(fig).window_open)
     return fig, axis
 end
