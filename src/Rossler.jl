@@ -1,3 +1,7 @@
+module Rossler
+
+export attract!, Attractor
+
 using GLMakie
 
 @kwdef mutable struct Attractor
@@ -35,4 +39,6 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     wait(screen)
     close_timers()
     return fig
+end
+
 end
