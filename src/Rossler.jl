@@ -87,7 +87,8 @@ function Base.display(attractor::Attractor)
         name == :dt && break
         @printf("%s = %.3f\n", name, getfield(attractor, name))
     end
-    display(GLMakie.Screen(), attractor.fig)
+    isempty(attractor.fig.content) || display(GLMakie.Screen(), attractor.fig)
+    return
 end
 
 end
