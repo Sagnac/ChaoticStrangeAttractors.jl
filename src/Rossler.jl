@@ -71,13 +71,13 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     end
     close_timers() = (close(t1); close(t2))
     attractor.fig = fig
+    on(window_open -> !window_open && close_timers(), events(fig).window_open)
     display(GLMakie.Screen(), fig)
     paused = false
     on(play.clicks; update = true) do _
         paused ? close_timers() : start_timers()
         paused = !paused
     end
-    on(window_open -> !window_open && close_timers(), events(fig).window_open)
     return attractor
 end
 
