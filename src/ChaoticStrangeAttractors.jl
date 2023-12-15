@@ -1,22 +1,9 @@
-module Rossler
+module ChaoticStrangeAttractors
 
-export attract!, Attractor
+export attract!, Attractor, Rossler
 
 using Printf
 using GLMakie
-
-abstract type Attractor end
-
-@kwdef mutable struct _Rossler <: Attractor
-     a::Float64 =  0.1
-     b::Float64 =  0.1
-     c::Float64 = 18.0
-     x::Float64 = 21.0
-     y::Float64 =  0.0
-     z::Float64 =  0.0
-    dt::Float64 =  0.05
-    fig::Figure = Figure()
-end
 
 @kwdef mutable struct Colors
     colors::Vector{RGBf} = [
@@ -47,17 +34,9 @@ macro evolve!()
     end |> esc
 end
 
-function (attractor::_Rossler)(axis::Makie.AbstractAxis, color::RGBf)
-    (; a, b, c) = attractor
-    (; x, y, z, dt) = attractor
-    dx_dt = -y - z
-    dy_dt = x + a * y
-    dz_dt = b + z * (x - c)
-    @evolve!
-    return
-end
+include("Attractors.jl")
 
-function attract!(attractor::T = _Rossler(); t::Real = 125) where T <: Attractor
+function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     (; x, y, z) = attractor
     (; colors, selection) = cycle_colors
     fig = Figure()
