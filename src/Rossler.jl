@@ -5,7 +5,9 @@ export attract!, Attractor
 using Printf
 using GLMakie
 
-@kwdef mutable struct Attractor
+abstract type Attractor end
+
+@kwdef mutable struct _Rossler <: Attractor
      a::Float64 =  0.1
      b::Float64 =  0.1
      c::Float64 = 18.0
@@ -33,31 +35,42 @@ function (cycle::Colors)()
     cycle.selection = mod(cycle.selection, 5) + 1
 end
 
-function evolve!(attractor::Attractor, axis::Makie.AbstractAxis, color::RGBf)
-    (; a, b, c, x, y, z, dt) = attractor
+macro evolve!()
+    quote
+        x′ = x + dx_dt * dt
+        y′ = y + dy_dt * dt
+        z′ = z + dz_dt * dt
+        lines!(axis, [x, x′], [y, y′], [z, z′]; color)
+        attractor.x = x′
+        attractor.y = y′
+        attractor.z = z′
+    end |> esc
+end
+
+function (attractor::_Rossler)(axis::Makie.AbstractAxis, color::RGBf)
+    (; a, b, c) = attractor
+    (; x, y, z, dt) = attractor
     dx_dt = -y - z
     dy_dt = x + a * y
     dz_dt = b + z * (x - c)
-    x′ = x + dx_dt * dt
-    y′ = y + dy_dt * dt
-    z′ = z + dz_dt * dt
-    lines!(axis, [x, x′], [y, y′], [z, z′]; color)
-    attractor.x = x′
-    attractor.y = y′
-    attractor.z = z′
+    @evolve!
     return
 end
 
-function attract!(attractor::Attractor = Attractor(); t::Real = 125)
-    (; a, b, c, x, y, z) = attractor
+function attract!(attractor::T = _Rossler(); t::Real = 125) where T <: Attractor
+    (; x, y, z) = attractor
     (; colors, selection) = cycle_colors
     fig = Figure()
-    axis = Axis3(fig[1,1]; title = "Rössler attractor")
+    axis = Axis3(fig[1,1]; title = "$T attractor")
     fontsize = 16
     grid = GridLayout(fig[1,2]; tellheight = false)
-    labels = [L"a = %$a"; L"b = %$b"; L"c = %$c";
-              L"x_0 = %$x"; L"y_0 = %$y"; L"z_0 = %$z"]
-    for i = 1:6
+    params = Makie.LaTeXString[]
+    for name ∈ fieldnames(T)
+        name == :x && break
+        push!(params, L"%$name = %$(getfield(attractor, name))")
+    end
+    labels = [params; L"x_0 = %$x"; L"y_0 = %$y"; L"z_0 = %$z"]
+    for i = 1:length(labels)
         Label(grid[i,1], labels[i]; fontsize, halign = :left)
     end
     play = Button(grid[7,1]; label = "\u23ef", fontsize)
@@ -66,7 +79,7 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     cycle_colors()
     local t1, t2
     function start_timers()
-        t1 = Timer(_ -> evolve!(attractor, axis, color), 0; interval = attractor.dt)
+        t1 = Timer(_ -> attractor(axis, color), 0; interval = attractor.dt)
         t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
     end
     close_timers() = (close(t1); close(t2))
@@ -81,9 +94,9 @@ function attract!(attractor::Attractor = Attractor(); t::Real = 125)
     return attractor
 end
 
-function Base.display(attractor::Attractor)
+function Base.display(attractor::T) where T <: Attractor
     events(attractor.fig).window_open[] && return
-    for name ∈ fieldnames(Attractor)
+    for name ∈ fieldnames(T)
         name == :dt && break
         @printf("%s = %.3f\n", name, getfield(attractor, name))
     end
