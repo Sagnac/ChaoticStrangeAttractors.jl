@@ -5,6 +5,8 @@ export attract!, Attractor, Rossler, Lorenz
 using Printf
 using GLMakie
 
+const interval = 0.05
+
 @kwdef mutable struct Colors
     colors::Vector{RGBf} = [
         RGBf(0.0, 0.0, 0.8), # ~ blue
@@ -27,14 +29,24 @@ macro evolve!()
         x′ = x + dx_dt * dt
         y′ = y + dy_dt * dt
         z′ = z + dz_dt * dt
-        lines!(axis, [x, x′], [y, y′], [z, z′]; color)
-        attractor.x = x′
-        attractor.y = y′
-        attractor.z = z′
+        push!(segments[1], x′)
+        push!(segments[2], y′)
+        push!(segments[3], z′)
+        attractor!.x = x′
+        attractor!.y = y′
+        attractor!.z = z′
     end |> esc
 end
 
 include("Attractors.jl")
+
+function unroll(attractor!::Attractor, axis::Makie.AbstractAxis, color::RGBf)
+    segments = [[attractor!.x], [attractor!.y], [attractor!.z]]
+    for i = 1:div(interval, attractor!.dt)
+        attractor!(segments)
+    end
+    lines!(axis, segments...; color)
+end
 
 function format_labels(attractor::T) where T <: Attractor
     labels = Makie.LaTeXString[]
@@ -65,7 +77,7 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     cycle_colors()
     local t1, t2
     function start_timers()
-        t1 = Timer(_ -> attractor(axis, color), 0; interval = attractor.dt)
+        t1 = Timer(_ -> unroll(attractor, axis, color), 0; interval)
         t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
     end
     close_timers() = (close(t1); close(t2))
