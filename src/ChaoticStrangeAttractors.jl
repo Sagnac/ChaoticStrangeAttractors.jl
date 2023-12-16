@@ -7,6 +7,12 @@ using GLMakie
 
 const interval = 0.05
 
+mutable struct State
+    point::Scatter{Tuple{Vector{Point{3, Float32}}}}
+    axis::Axis3
+    color::RGBf
+end
+
 @kwdef mutable struct Colors
     colors::Vector{RGBf} = [
         RGBf(0.0, 0.0, 0.8), # ~ blue
@@ -40,12 +46,17 @@ end
 
 include("Attractors.jl")
 
-function unroll(attractor!::Attractor, axis::Makie.AbstractAxis, color::RGBf)
+function unroll!(attractor!::Attractor, state::State)
+    (; point, axis, color) = state
     segments = [[attractor!.x], [attractor!.y], [attractor!.z]]
     for i = 1:div(interval, attractor!.dt)
         attractor!(segments)
     end
+    delete!(axis, point)
     lines!(axis, segments...; color)
+    point = scatter!(axis, attractor!.x, attractor!.y, attractor!.z; color)
+    state.point = point
+    return
 end
 
 function format_labels(attractor::T) where T <: Attractor
@@ -65,6 +76,7 @@ function format_labels(attractor::T) where T <: Attractor
 end
 
 function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
+    (; x, y, z) = attractor
     (; colors, selection) = cycle_colors
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
@@ -79,9 +91,11 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     colsize!(fig.layout, 1, Aspect(1, 1.0))
     color = colors[selection]
     cycle_colors()
+    point = scatter!(axis, x, y, z; color)
+    state = State(point, axis, color)
     local t1, t2
     function start_timers()
-        t1 = Timer(_ -> unroll(attractor, axis, color), 0; interval)
+        t1 = Timer(_ -> unroll!(attractor, state), 0; interval)
         t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
     end
     close_timers() = (close(t1); close(t2))
