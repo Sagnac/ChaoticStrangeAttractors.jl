@@ -36,19 +36,26 @@ end
 
 include("Attractors.jl")
 
+function format_labels(attractor::T) where T <: Attractor
+    labels = Makie.LaTeXString[]
+    subscript = false
+    for name ∈ fieldnames(T)
+        name == :dt && break
+        subscript = subscript || name == :x
+        latex_name = subscript ? string(name, "_0") : name
+        value = @sprintf("%.3f", getfield(attractor, name))
+        push!(labels, L"%$latex_name = %$value")
+    end
+    return labels
+end
+
 function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
-    (; x, y, z) = attractor
     (; colors, selection) = cycle_colors
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
     fontsize = 16
     grid = GridLayout(fig[1,2]; tellheight = false)
-    params = Makie.LaTeXString[]
-    for name ∈ fieldnames(T)
-        name == :x && break
-        push!(params, L"%$name = %$(getfield(attractor, name))")
-    end
-    labels = [params; L"x_0 = %$x"; L"y_0 = %$y"; L"z_0 = %$z"]
+    labels = format_labels(attractor)
     for i = 1:length(labels)
         Label(grid[i,1], labels[i]; fontsize, halign = :left)
     end
