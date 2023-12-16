@@ -52,9 +52,12 @@ function format_labels(attractor::T) where T <: Attractor
     labels = Makie.LaTeXString[]
     subscript = false
     for name ∈ fieldnames(T)
-        name == :dt && break
+        name == :fig && break
         subscript = subscript || name == :x
         latex_name = subscript ? string(name, "_0") : name
+        if name == :dt
+            latex_name = "Δt"
+        end
         value = @sprintf("%.3f", getfield(attractor, name))
         push!(labels, L"%$latex_name = %$value")
     end
@@ -68,10 +71,11 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     fontsize = 16
     grid = GridLayout(fig[1,2]; tellheight = false)
     labels = format_labels(attractor)
-    for i = 1:length(labels)
+    label_len = length(labels)
+    for i = 1:label_len
         Label(grid[i,1], labels[i]; fontsize, halign = :left)
     end
-    play = Button(grid[7,1]; label = "\u23ef", fontsize)
+    play = Button(grid[label_len+1,1]; label = "\u23ef", fontsize)
     colsize!(fig.layout, 1, Aspect(1, 1.0))
     color = colors[selection]
     cycle_colors()
