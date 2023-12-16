@@ -20,3 +20,24 @@ function (attractor::Rossler)(axis::Makie.AbstractAxis, color::RGBf)
     @evolve!
     return
 end
+
+@kwdef mutable struct Lorenz <: Attractor
+     σ::Float64 = 10.0
+     ρ::Float64 = 28.0
+     β::Float64 =  8/3
+     x::Float64 =  2.0
+     y::Float64 =  1.0
+     z::Float64 =  1.0
+    dt::Float64 =  0.01
+    fig::Figure = Figure()
+end
+
+function (attractor::Lorenz)(axis::Makie.AbstractAxis, color::RGBf)
+    (; σ, ρ, β) = attractor
+    (; x, y, z, dt) = attractor
+    dx_dt = σ * (y - x)
+    dy_dt = x * (ρ - z) - y
+    dz_dt = x * y - β * z
+    @evolve!
+    return
+end
