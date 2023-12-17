@@ -11,24 +11,26 @@ mutable struct State
     position::Scatter{Tuple{Vector{Point{3, Float32}}}}
     segments::Lines{Tuple{Vector{Point{3, Float32}}}}
     axis::Axis3
-    color::RGBf
+    colors::Tuple{RGBf, RGBf}
 end
 
 @kwdef mutable struct Colors
-    colors::Vector{RGBf} = [
+    palette::Vector{RGBf} = [
         RGBf(0.0, 0.0, 0.8), # ~ blue
         RGBf(0.0, 0.8, 0.0), # ~ green
         RGBf(0.8, 0.0, 0.0), # ~ red
         RGBf(0.8, 0.0, 0.8), # ~ magenta
         RGBf(0.0, 0.8, 0.8), # ~ cyan
     ]
-    selection::Int = 1
+    line_selection::Int = 1
+    point_selection::Int = 3
 end
 
 const cycle_colors = Colors()
 
 function (cycle::Colors)()
-    cycle.selection = mod(cycle.selection, 5) + 1
+    cycle.line_selection = mod(cycle.line_selection, 5) + 1
+    cycle.point_selection = mod(cycle.line_selection, 4) + 2
 end
 
 macro evolve!()
@@ -49,14 +51,14 @@ end
 include("Attractors.jl")
 
 function unroll!(attractor!::Attractor, state::State)
-    (; position, segments, axis, color) = state
+    (; position, segments, axis, colors) = state
     for i = 1:div(interval, attractor!.dt)
         attractor!()
     end
     delete!(axis, segments)
     delete!(axis, position)
-    segments = lines!(axis, attractor!.points...; color)
-    position = scatter!(axis, attractor!.x, attractor!.y, attractor!.z; color)
+    segments = lines!(axis, attractor!.points...; color = colors[1])
+    position = scatter!(axis, last.(attractor!.points)...; color = colors[2])
     state.segments = segments
     state.position = position
     return
@@ -64,17 +66,17 @@ end
 
 function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     (; x, y, z) = attractor
-    (; colors, selection) = cycle_colors
+    (; palette, line_selection, point_selection) = cycle_colors
     attractor.points = [[x], [y], [z]]
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
     play = Button(fig[1,2]; label = "\u23ef", fontsize = 16, tellheight = false)
     colsize!(fig.layout, 1, Aspect(1, 1.0))
-    color = colors[selection]
+    colors = (palette[line_selection], palette[point_selection])
     cycle_colors()
-    segments = lines!(axis, attractor.points...; color)
-    position = scatter!(axis, x, y, z; color)
-    state = State(position, segments, axis, color)
+    segments = lines!(axis, attractor.points...; color = colors[1])
+    position = scatter!(axis, x, y, z; color = colors[2])
+    state = State(position, segments, axis, colors)
     attractor.fig = fig
     local t1, t2
     paused = true
