@@ -60,33 +60,12 @@ function unroll!(attractor!::Attractor, state::State)
     return
 end
 
-function format_labels(attractor::T) where T <: Attractor
-    labels = Makie.LaTeXString[]
-    for name ∈ fieldnames(T)
-        name == :t && break
-        latex_name = name ∈ (:x, :y, :z) ? string(name, "_0") : name
-        if name == :dt
-            latex_name = "Δt"
-        end
-        value = @sprintf("%.3f", getfield(attractor, name))
-        push!(labels, L"%$latex_name = %$value")
-    end
-    return labels
-end
-
 function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     (; x, y, z) = attractor
     (; colors, selection) = cycle_colors
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
-    fontsize = 16
-    grid = GridLayout(fig[1,2]; tellheight = false)
-    labels = format_labels(attractor)
-    label_len = length(labels)
-    for i = 1:label_len
-        Label(grid[i,1], labels[i]; fontsize, halign = :left)
-    end
-    play = Button(grid[label_len+1,1]; label = "\u23ef", fontsize)
+    play = Button(fig[1,2]; label = "\u23ef", fontsize = 16, tellheight = false)
     colsize!(fig.layout, 1, Aspect(1, 1.0))
     color = colors[selection]
     cycle_colors()
@@ -106,6 +85,7 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     end
     attractor.fig = fig
     on(window_open -> !window_open && stop_timers(), events(fig).window_open)
+    display(GLMakie.Screen(), fig)
     on(play.clicks; update = true) do _
         paused ? start_timers() : stop_timers()
     end
@@ -116,7 +96,7 @@ function Base.display(attractor::T) where T <: Attractor
     (; fig) = attractor
     for name ∈ fieldnames(T)
         name == :fig && break
-        @printf("%s = %.3f\n", name, getfield(attractor, name))
+        @printf("%s = %.4f\n", name, getfield(attractor, name))
     end
     (isempty(fig.content) || events(fig).window_open[]) && return
     display(GLMakie.Screen(), fig)

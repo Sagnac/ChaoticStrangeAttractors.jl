@@ -7,8 +7,8 @@ abstract type Attractor end
      x::Float64 = 21.0
      y::Float64 =  0.0
      z::Float64 =  0.0
-    dt::Float64 =  0.001
      t::Float64 =  0.0
+    dt::Float64 =  0.001
     fig::Figure = Figure()
 end
 
@@ -29,8 +29,8 @@ end
      x::Float64 =  1.0
      y::Float64 =  0.0
      z::Float64 =  0.0
-    dt::Float64 =  0.001
      t::Float64 =  0.0
+    dt::Float64 =  0.001
     fig::Figure = Figure()
 end
 
@@ -54,8 +54,8 @@ end
      x::Float64 =  1.0
      y::Float64 =  0.0
      z::Float64 =  0.0
-    dt::Float64 =  0.001
      t::Float64 =  0.0
+    dt::Float64 =  0.001
     fig::Figure = Figure()
 end
 
