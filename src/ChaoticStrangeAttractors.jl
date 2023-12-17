@@ -94,18 +94,22 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     point = scatter!(axis, x, y, z; color)
     state = State(point, axis, color)
     local t1, t2
+    paused = true
     function start_timers()
         t1 = Timer(_ -> unroll!(attractor, state), 0; interval)
-        t2 = Timer(_ -> t ≠ Inf ? close_timers() : nothing, t)
+        t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
+        paused = false
     end
-    close_timers() = (close(t1); close(t2))
+    function stop_timers()
+        close(t1)
+        close(t2)
+        paused = true
+    end
     attractor.fig = fig
-    on(window_open -> !window_open && close_timers(), events(fig).window_open)
+    on(window_open -> !window_open && stop_timers(), events(fig).window_open)
     display(GLMakie.Screen(), fig)
-    paused = false
     on(play.clicks; update = true) do _
-        paused ? close_timers() : start_timers()
-        paused = !paused
+        paused ? start_timers() : stop_timers()
     end
     return attractor
 end
