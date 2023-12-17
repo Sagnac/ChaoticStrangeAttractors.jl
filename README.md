@@ -1,6 +1,6 @@
 # ChaoticStrangeAttractors.jl
 
-<video src="./videos/aizawa.webm" width="600" height="450" autoplay loop></video>
+<video src="./videos/aizawa.mp4" width="600" height="450" autoplay loop></video>
 
 ## Installation
 
@@ -17,5 +17,5 @@ attractor = Rossler(a = 0.2, b = 0.2, c = 5.7, x = 7, y = 0, z = 0)
 attract!(attractor, t = 200)
 
 # encoding example
-attract!("rossler.webm", attractor, t = 54)
+attract!("rossler.mp4", attractor, t = 54)
 ```
