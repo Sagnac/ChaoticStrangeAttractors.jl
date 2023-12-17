@@ -117,8 +117,13 @@ function attract!(file_path::String, attractor::T = Aizawa();
     duration = @sprintf("%.2f", t / 60)
     @info "Encoding the $T attractor to $file_path, \
         this will take approximately $duration minutes."
-    record(fig, file_path, itr; framerate = 20) do i
-        unroll!(attractor, state)
+    display(GLMakie.Screen(), fig)
+    record(fig, file_path; visible = true, framerate = 20) do io
+        for i in itr
+            unroll!(attractor, state)
+            !events(fig).window_open[] && break
+            recordframe!(io)
+        end
     end
     return attractor
 end

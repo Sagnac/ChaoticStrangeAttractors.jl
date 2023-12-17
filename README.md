@@ -1,6 +1,6 @@
 # ChaoticStrangeAttractors.jl
 
-<video src="./videos/aizawa.mp4" width="600" height="450" autoplay loop></video>
+![aizawa.gif](images/aizawa.gif)
 
 ## Installation
 
