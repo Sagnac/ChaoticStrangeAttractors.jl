@@ -8,7 +8,8 @@ using GLMakie
 const interval = 0.05
 
 mutable struct State
-    point::Scatter{Tuple{Vector{Point{3, Float32}}}}
+    position::Scatter{Tuple{Vector{Point{3, Float32}}}}
+    segments::Lines{Tuple{Vector{Point{3, Float32}}}}
     axis::Axis3
     color::RGBf
 end
@@ -35,9 +36,9 @@ macro evolve!()
         x′ = x + dx_dt * dt
         y′ = y + dy_dt * dt
         z′ = z + dz_dt * dt
-        push!(segments[1], x′)
-        push!(segments[2], y′)
-        push!(segments[3], z′)
+        push!(attractor!.points[1], x′)
+        push!(attractor!.points[2], y′)
+        push!(attractor!.points[3], z′)
         attractor!.x = x′
         attractor!.y = y′
         attractor!.z = z′
@@ -48,29 +49,33 @@ end
 include("Attractors.jl")
 
 function unroll!(attractor!::Attractor, state::State)
-    (; point, axis, color) = state
-    segments = [[attractor!.x], [attractor!.y], [attractor!.z]]
+    (; position, segments, axis, color) = state
     for i = 1:div(interval, attractor!.dt)
-        attractor!(segments)
+        attractor!()
     end
-    delete!(axis, point)
-    lines!(axis, segments...; color)
-    point = scatter!(axis, attractor!.x, attractor!.y, attractor!.z; color)
-    state.point = point
+    delete!(axis, segments)
+    delete!(axis, position)
+    segments = lines!(axis, attractor!.points...; color)
+    position = scatter!(axis, attractor!.x, attractor!.y, attractor!.z; color)
+    state.segments = segments
+    state.position = position
     return
 end
 
 function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     (; x, y, z) = attractor
     (; colors, selection) = cycle_colors
+    attractor.points = [[x], [y], [z]]
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
     play = Button(fig[1,2]; label = "\u23ef", fontsize = 16, tellheight = false)
     colsize!(fig.layout, 1, Aspect(1, 1.0))
     color = colors[selection]
     cycle_colors()
-    point = scatter!(axis, x, y, z; color)
-    state = State(point, axis, color)
+    segments = lines!(axis, attractor.points...; color)
+    position = scatter!(axis, x, y, z; color)
+    state = State(position, segments, axis, color)
+    attractor.fig = fig
     local t1, t2
     paused = true
     function start_timers()
@@ -83,7 +88,6 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
         close(t2)
         paused = true
     end
-    attractor.fig = fig
     on(window_open -> !window_open && stop_timers(), events(fig).window_open)
     display(GLMakie.Screen(), fig)
     on(play.clicks; update = true) do _

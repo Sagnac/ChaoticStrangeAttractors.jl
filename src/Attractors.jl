@@ -10,9 +10,10 @@ abstract type Attractor end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
+    points::Vector{Vector{Float64}} = [[]]
 end
 
-function (attractor!::Rossler)(segments::Vector{Vector{Float64}})
+function (attractor!::Rossler)()
     (; a, b, c) = attractor!
     (; x, y, z, dt) = attractor!
     dx_dt = -y - z
@@ -32,9 +33,10 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
+    points::Vector{Vector{Float64}} = [[]]
 end
 
-function (attractor!::Lorenz)(segments::Vector{Vector{Float64}})
+function (attractor!::Lorenz)()
     (; σ, ρ, β) = attractor!
     (; x, y, z, dt) = attractor!
     dx_dt = σ * (y - x)
@@ -57,9 +59,10 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
+    points::Vector{Vector{Float64}} = [[]]
 end
 
-function (attractor!::Aizawa)(segments::Vector{Vector{Float64}})
+function (attractor!::Aizawa)()
     (; a, b, c, d, e, f) = attractor!
     (; x, y, z, dt) = attractor!
     dx_dt = (z - b)x - d*y
