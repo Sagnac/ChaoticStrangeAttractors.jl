@@ -64,20 +64,31 @@ function unroll!(attractor!::Attractor, state::State)
     return
 end
 
-function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
+function set!(attractor::T) where T <: Attractor
     (; x, y, z) = attractor
     (; palette, line_selection, point_selection) = cycle_colors
     attractor.points = [[x], [y], [z]]
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
-    play = Button(fig[1,2]; label = "\u23ef", fontsize = 16, tellheight = false)
-    colsize!(fig.layout, 1, Aspect(1, 1.0))
     colors = (palette[line_selection], palette[point_selection])
     cycle_colors()
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
     state = State(position, segments, axis, colors)
     attractor.fig = fig
+    return state
+end
+
+function set!(fig::Figure)
+    play = Button(fig[1,2]; label = "\u23ef", fontsize = 16, tellheight = false)
+    colsize!(fig.layout, 1, Aspect(1, 1.0))
+    return play
+end
+    
+function attract!(attractor::Attractor = Rossler(); t::Real = 125)
+    state = set!(attractor)
+    (; fig) = attractor
+    play = set!(fig)
     local t1, t2
     paused = true
     function start_timers()
@@ -94,6 +105,20 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     display(GLMakie.Screen(), fig)
     on(play.clicks; update = true) do _
         paused ? start_timers() : stop_timers()
+    end
+    return attractor
+end
+
+function attract!(file_path::String, attractor::T = Aizawa();
+                  t::Real = 125) where T <: Attractor
+    state = set!(attractor)
+    (; fig) = attractor
+    itr = range(1, t / interval)
+    duration = @sprintf("%.2f", t / 60)
+    @info "Encoding the $T attractor to $file_path, \
+        this will take approximately $duration minutes."
+    record(fig, file_path, itr; framerate = 20) do i
+        unroll!(attractor, state)
     end
     return attractor
 end
