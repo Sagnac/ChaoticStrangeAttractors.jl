@@ -41,3 +41,27 @@ function (attractor!::Lorenz)(segments::Vector{Vector{Float64}})
     @evolve!
     return
 end
+
+@kwdef mutable struct Aizawa <: Attractor
+     a::Float64 =  0.95
+     b::Float64 =  0.7
+     c::Float64 =  0.6
+     d::Float64 =  3.5
+     e::Float64 =  0.25
+     f::Float64 =  0.1
+     x::Float64 =  1.0
+     y::Float64 =  0.0
+     z::Float64 =  0.0
+    dt::Float64 =  0.001
+    fig::Figure = Figure()
+end
+
+function (attractor!::Aizawa)(segments::Vector{Vector{Float64}})
+    (; a, b, c, d, e, f) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = (z - b)x - d*y
+    dy_dt = d*x + (z - b)y
+    dz_dt = c + a*z - z^3/3 - (x^2 + y^2)*(1 + e*z) + f*z*x^3
+    @evolve!
+    return
+end

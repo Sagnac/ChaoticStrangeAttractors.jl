@@ -1,6 +1,6 @@
 module ChaoticStrangeAttractors
 
-export attract!, Attractor, Rossler, Lorenz
+export attract!, Attractor, Rossler, Lorenz, Aizawa
 
 using Printf
 using GLMakie
