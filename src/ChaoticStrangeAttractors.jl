@@ -41,6 +41,7 @@ macro evolve!()
         attractor!.x = x′
         attractor!.y = y′
         attractor!.z = z′
+        attractor!.t += dt
     end |> esc
 end
 
@@ -61,11 +62,9 @@ end
 
 function format_labels(attractor::T) where T <: Attractor
     labels = Makie.LaTeXString[]
-    subscript = false
     for name ∈ fieldnames(T)
-        name == :fig && break
-        subscript = subscript || name == :x
-        latex_name = subscript ? string(name, "_0") : name
+        name == :t && break
+        latex_name = name ∈ (:x, :y, :z) ? string(name, "_0") : name
         if name == :dt
             latex_name = "Δt"
         end
@@ -107,7 +106,6 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
     end
     attractor.fig = fig
     on(window_open -> !window_open && stop_timers(), events(fig).window_open)
-    display(GLMakie.Screen(), fig)
     on(play.clicks; update = true) do _
         paused ? start_timers() : stop_timers()
     end
@@ -115,13 +113,13 @@ function attract!(attractor::T = Rossler(); t::Real = 125) where T <: Attractor
 end
 
 function Base.display(attractor::T) where T <: Attractor
-    events(attractor.fig).window_open[] && return
+    (; fig) = attractor
     for name ∈ fieldnames(T)
-        name == :dt && break
+        name == :fig && break
         @printf("%s = %.3f\n", name, getfield(attractor, name))
     end
-    isempty(attractor.fig.content) || display(GLMakie.Screen(), attractor.fig)
-    return
+    (isempty(fig.content) || events(fig).window_open[]) && return
+    display(GLMakie.Screen(), fig)
 end
 
 end
