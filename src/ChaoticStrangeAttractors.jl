@@ -101,7 +101,9 @@ end
 function Base.display(attractor::T) where T <: Attractor
     (; fig) = attractor
     for name ∈ fieldnames(T)
-        name == :fig && break
+        name == :dt && break
+        name == :x && @printf("\nx_0 = %.4f\ny_0 = %.4f\nz_0 = %.4f\nΔt = %.4f\n\n",
+            first.(attractor.points)..., attractor.dt)
         @printf("%s = %.4f\n", name, getfield(attractor, name))
     end
     (isempty(fig.content) || events(fig).window_open[]) && return
