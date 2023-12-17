@@ -76,6 +76,7 @@ function set!(attractor::T) where T <: Attractor
     position = scatter!(axis, x, y, z; color = colors[2])
     state = State(position, segments, axis, colors)
     attractor.fig = fig
+    display(GLMakie.Screen(), fig)
     return state
 end
 
@@ -102,7 +103,6 @@ function attract!(attractor::Attractor = Rossler(); t::Real = 125)
         paused = true
     end
     on(window_open -> !window_open && stop_timers(), events(fig).window_open)
-    display(GLMakie.Screen(), fig)
     on(play.clicks; update = true) do _
         paused ? start_timers() : stop_timers()
     end
@@ -117,7 +117,6 @@ function attract!(file_path::String, attractor::T = Aizawa();
     duration = @sprintf("%.2f", t / 60)
     @info "Encoding the $T attractor to $file_path, \
         this will take approximately $duration minutes."
-    display(GLMakie.Screen(), fig)
     record(fig, file_path; visible = true, framerate = 20) do io
         for i in itr
             unroll!(attractor, state)
