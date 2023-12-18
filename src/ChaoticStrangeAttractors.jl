@@ -70,7 +70,6 @@ end
 function set!(attractor::T) where T <: Attractor
     (; x, y, z) = attractor
     (; palette, selection) = cycle_colors
-    attractor.points = ([x], [y], [z])
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
     colors = map(i -> palette[i], selection)

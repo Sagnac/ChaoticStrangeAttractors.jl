@@ -10,7 +10,7 @@ abstract type Attractor end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = ([], [], [])
+    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
 end
 
 function (attractor!::Rossler)()
@@ -33,7 +33,7 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = ([], [], [])
+    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
 end
 
 function (attractor!::Lorenz)()
@@ -59,7 +59,7 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = ([], [], [])
+    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
 end
 
 function (attractor!::Aizawa)()
