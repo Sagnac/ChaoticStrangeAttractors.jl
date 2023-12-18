@@ -1,6 +1,6 @@
 module ChaoticStrangeAttractors
 
-export attract!, Attractor, Rossler, Lorenz, Aizawa
+export attract!, Attractor, cycle_colors, Rossler, Lorenz, Aizawa
 
 using Printf
 using GLMakie
@@ -22,15 +22,18 @@ end
         RGBf(0.8, 0.0, 0.8), # ~ magenta
         RGBf(0.0, 0.8, 0.8), # ~ cyan
     ]
-    line_selection::Int = 1
-    point_selection::Int = 3
+    selection::Tuple{Int, Int} = (1, 3)
+    fixed::Bool = false
 end
 
 const cycle_colors = Colors()
 
 function (cycle::Colors)()
-    cycle.line_selection = mod(cycle.line_selection, 5) + 1
-    cycle.point_selection = mod(cycle.line_selection, 4) + 2
+    cycle.fixed && return
+    len = length(cycle.palette)
+    line_selection = mod(cycle.selection[1], len) + 1
+    point_selection = mod(line_selection, len - 1) + 2
+    cycle.selection = (line_selection, point_selection)
 end
 
 macro evolve!()
@@ -66,11 +69,11 @@ end
 
 function set!(attractor::T) where T <: Attractor
     (; x, y, z) = attractor
-    (; palette, line_selection, point_selection) = cycle_colors
+    (; palette, selection) = cycle_colors
     attractor.points = ([x], [y], [z])
     fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
-    colors = (palette[line_selection], palette[point_selection])
+    colors = map(i -> palette[i], selection)
     cycle_colors()
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
