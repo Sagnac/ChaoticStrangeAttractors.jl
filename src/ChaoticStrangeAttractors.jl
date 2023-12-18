@@ -86,12 +86,12 @@ function set!(fig::Figure)
     return play
 end
     
-function attract!(attractor::Attractor = Rossler(); t::Real = 125)
+function attract!(attractor::Attractor = Rossler();
+                  t::Real = 125, paused::Bool = false)
     state = set!(attractor)
     (; fig) = attractor
     play = set!(fig)
     local t1, t2
-    paused = true
     function start_timers()
         t1 = Timer(_ -> unroll!(attractor, state), 0; interval)
         t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
@@ -102,10 +102,13 @@ function attract!(attractor::Attractor = Rossler(); t::Real = 125)
         close(t2)
         paused = true
     end
-    on(window_open -> !window_open && stop_timers(), events(fig).window_open)
-    on(play.clicks; update = true) do _
+    on(events(fig).window_open) do window_open
+        !paused && !window_open && stop_timers()
+    end
+    on(play.clicks) do _
         paused ? start_timers() : stop_timers()
     end
+    paused || start_timers()
     return attractor
 end
 
