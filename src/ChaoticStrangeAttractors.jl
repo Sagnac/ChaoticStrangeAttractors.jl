@@ -68,16 +68,14 @@ function unroll!(attractor!::Attractor, state::State)
 end
 
 function set!(attractor::T) where T <: Attractor
-    (; x, y, z) = attractor
+    (; x, y, z, fig) = attractor
     (; palette, selection) = cycle_colors
-    fig = Figure()
     axis = Axis3(fig[1,1]; title = "$T attractor")
     colors = map(i -> palette[i], selection)
     cycle_colors()
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
     state = State(position, segments, axis, colors)
-    attractor.fig = fig
     display(GLMakie.Screen(), fig)
     return state
 end
