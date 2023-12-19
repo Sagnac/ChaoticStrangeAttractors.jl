@@ -17,6 +17,8 @@ mutable struct State
     State(position, segments, axis, colors) = new(position, segments, axis, colors)
 end
 
+include("Attractors.jl")
+
 @kwdef mutable struct Colors
     palette::Vector{RGBf} = [
         RGBf(0.0, 0.0, 0.8), # ~ blue
@@ -38,23 +40,6 @@ function (cycle::Colors)()
     point_selection = mod(line_selection, len - 1) + 2
     cycle.selection = (line_selection, point_selection)
 end
-
-macro evolve!()
-    quote
-        x′ = x + dx_dt * dt
-        y′ = y + dy_dt * dt
-        z′ = z + dz_dt * dt
-        push!(attractor!.points[1], x′)
-        push!(attractor!.points[2], y′)
-        push!(attractor!.points[3], z′)
-        attractor!.x = x′
-        attractor!.y = y′
-        attractor!.z = z′
-        attractor!.t += dt
-    end |> esc
-end
-
-include("Attractors.jl")
 
 function unroll!(attractor!::Attractor)
     (; position, segments, axis, colors) = attractor!.state

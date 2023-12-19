@@ -2,6 +2,21 @@ abstract type Attractor end
 
 const Attractors = Union{Attractor, Vector{<:Attractor}}
 
+macro evolve!()
+    quote
+        x′ = x + dx_dt * dt
+        y′ = y + dy_dt * dt
+        z′ = z + dz_dt * dt
+        push!(attractor!.points[1], x′)
+        push!(attractor!.points[2], y′)
+        push!(attractor!.points[3], z′)
+        attractor!.x = x′
+        attractor!.y = y′
+        attractor!.z = z′
+        attractor!.t += dt
+    end |> esc
+end
+
 @kwdef mutable struct Rossler <: Attractor
      a::Float64 =  0.1
      b::Float64 =  0.1
