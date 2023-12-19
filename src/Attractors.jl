@@ -1,5 +1,7 @@
 abstract type Attractor end
 
+const Attractors = Union{Attractor, Vector{<:Attractor}}
+
 @kwdef mutable struct Rossler <: Attractor
      a::Float64 =  0.1
      b::Float64 =  0.1
@@ -11,6 +13,7 @@ abstract type Attractor end
     dt::Float64 =  0.001
     fig::Figure = Figure()
     points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    state::State = State()
 end
 
 function (attractor!::Rossler)()
@@ -34,6 +37,7 @@ end
     dt::Float64 =  0.001
     fig::Figure = Figure()
     points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    state::State = State()
 end
 
 function (attractor!::Lorenz)()
@@ -60,6 +64,7 @@ end
     dt::Float64 =  0.001
     fig::Figure = Figure()
     points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    state::State = State()
 end
 
 function (attractor!::Aizawa)()

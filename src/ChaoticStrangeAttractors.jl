@@ -4,6 +4,7 @@ export attract!, Attractor, cycle_colors, Rossler, Lorenz, Aizawa
 
 using Printf
 using GLMakie
+using .Iterators: peel
 
 const interval = 0.05
 
@@ -12,6 +13,8 @@ mutable struct State
     segments::Lines{Tuple{Vector{Point{3, Float32}}}}
     axis::Axis3
     colors::Tuple{RGBf, RGBf}
+    State() = new()
+    State(position, segments, axis, colors) = new(position, segments, axis, colors)
 end
 
 @kwdef mutable struct Colors
@@ -53,8 +56,8 @@ end
 
 include("Attractors.jl")
 
-function unroll!(attractor!::Attractor, state::State)
-    (; position, segments, axis, colors) = state
+function unroll!(attractor!::Attractor)
+    (; position, segments, axis, colors) = attractor!.state
     for i = 1:div(interval, attractor!.dt)
         attractor!()
     end
@@ -62,22 +65,46 @@ function unroll!(attractor!::Attractor, state::State)
     delete!(axis, position)
     segments = lines!(axis, attractor!.points...; color = colors[1])
     position = scatter!(axis, last.(attractor!.points)...; color = colors[2])
-    state.segments = segments
-    state.position = position
+    attractor!.state.segments = segments
+    attractor!.state.position = position
     return
 end
 
-function set!(attractor::T) where T <: Attractor
+function unroll!(attractors::Vector{<:Attractor})
+    for attractor ∈ attractors
+        unroll!(attractor)
+    end
+end
+
+function init!(attractor::Attractor, axis::Axis3)
     (; x, y, z, fig) = attractor
     (; palette, selection) = cycle_colors
-    axis = Axis3(fig[1,1]; title = "$T attractor")
     colors = map(i -> palette[i], selection)
     cycle_colors()
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
     state = State(position, segments, axis, colors)
+    attractor.state = state
+    return
+end
+
+function init!(attractors::Vector{<:Attractor}, axis::Axis3)
+    initial, links = peel(attractors)
+    init!(initial, axis)
+    for attractor ∈ links
+        attractor.fig = initial.fig
+        init!(attractor, axis)
+    end
+end
+
+function set!(attractors::Attractors)
+    attractor = attractors[]
+    (; fig) = attractor
+    T = typeof(attractor)
+    axis = Axis3(fig[1,1]; title = "$T attractor")
+    init!(attractors, axis)
     display(GLMakie.Screen(), fig)
-    return state
+    return fig, T
 end
 
 function set!(fig::Figure)
@@ -86,14 +113,13 @@ function set!(fig::Figure)
     return play
 end
     
-function attract!(attractor::Attractor = Rossler();
+function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
-    state = set!(attractor)
-    (; fig) = attractor
+    fig, = set!(attractors)
     play = set!(fig)
     local t1, t2
     function start_timers()
-        t1 = Timer(_ -> unroll!(attractor, state), 0; interval)
+        t1 = Timer(_ -> unroll!(attractors), 0; interval)
         t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
         paused = false
     end
@@ -109,25 +135,27 @@ function attract!(attractor::Attractor = Rossler();
         paused ? start_timers() : stop_timers()
     end
     paused || start_timers()
-    return attractor
+    return attractors
 end
 
-function attract!(file_path::String, attractor::T = Aizawa();
-                  t::Real = 125) where T <: Attractor
-    state = set!(attractor)
-    (; fig) = attractor
+function attract!(
+    file_path  :: String,
+    attractors :: Attractors = Aizawa();
+    t          :: Real       = 125
+)
+    fig, T = set!(attractors)
     itr = range(1, t / interval)
     duration = @sprintf("%.2f", t / 60)
     @info "Encoding the $T attractor to $file_path, \
         this will take approximately $duration minutes."
     record(fig, file_path; visible = true, framerate = 20) do io
         for i in itr
-            unroll!(attractor, state)
+            unroll!(attractors)
             !events(fig).window_open[] && break
             recordframe!(io)
         end
     end
-    return attractor
+    return attractors
 end
 
 function Base.display(attractor::T) where T <: Attractor
@@ -141,5 +169,9 @@ function Base.display(attractor::T) where T <: Attractor
     (isempty(fig.content) || events(fig).window_open[]) && return
     display(GLMakie.Screen(), fig)
 end
+
+Base.getindex(attractor::Attractor) = attractor
+
+Base.getindex(attractors::Vector{<:Attractor}) = first(attractors)
 
 end
