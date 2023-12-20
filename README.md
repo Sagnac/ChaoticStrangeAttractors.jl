@@ -18,4 +18,8 @@ attract!(attractor, t = 200)
 
 # encoding example
 attract!("rossler.mp4", attractor, t = 54)
+
+# run multiple simultaneous paths for the same attractor type
+attractors = [Lorenz(; x) for x ∈ 6:8]
+attract!(attractors)
 ```

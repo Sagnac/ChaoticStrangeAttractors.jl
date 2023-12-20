@@ -45,9 +45,9 @@ end
      σ::Float64 = 10.0
      ρ::Float64 = 28.0
      β::Float64 =  8/3
-     x::Float64 =  1.0
-     y::Float64 =  0.0
-     z::Float64 =  0.0
+     x::Float64 =  4.0
+     y::Float64 =  7.0
+     z::Float64 =  5.0
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
