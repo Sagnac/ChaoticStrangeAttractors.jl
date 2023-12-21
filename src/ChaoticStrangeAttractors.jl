@@ -148,18 +148,7 @@ function attract!(
     return attractors
 end
 
-# printing vectors will first call 3-arg show and fall back to 2-arg show for output
-# if there are line breaks; this allows the figure display logic to fire while at the
-# same time printing the more concise format
-function Base.show(io::IO, attractor::T) where T <: Attractor
-    for name ∈ fieldnames(T)
-        name == :x && break
-        @printf(io, "%s = %.4f, ", name, getfield(attractor, name))
-    end
-    @printf(io, "x_0 = %.4f, y_0 = %.4f, z_0 = %.4f", first.(attractor.points)...)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", attractor::T) where T <: Attractor
+function recap(io::IO, attractor::T) where T <: Attractor
     (; fig) = attractor
     print(io, T, " attractor:")
     for name ∈ fieldnames(T)
@@ -171,6 +160,27 @@ function Base.show(io::IO, ::MIME"text/plain", attractor::T) where T <: Attracto
         @printf(io, "\n%s = %.4f", name, getfield(attractor, name))
     end
     (isempty(fig.content) || events(fig).window_open[]) && return
+    display(GLMakie.Screen(), fig)
+end
+
+function show_params(io::IO, attractor::T) where T <: Attractor
+    for name ∈ fieldnames(T)
+        name == :x && break
+        @printf(io, "%s = %.4f, ", name, getfield(attractor, name))
+    end
+    @printf(io, "x_0 = %.4f, y_0 = %.4f, z_0 = %.4f", first.(attractor.points)...)
+end
+
+function Base.show(io::IO, attractor::Attractor)
+    f = get(io, :typeinfo, false) isa Type ? show_params : recap
+    f(io, attractor)
+end
+
+function Base.display(attractors::Vector{<:Attractor})
+    (; fig) = attractors[]
+    (isempty(fig.content) || events(fig).window_open[]) && return
+    show(stdout, "text/plain", attractors)
+    println()
     display(GLMakie.Screen(), fig)
 end
 
