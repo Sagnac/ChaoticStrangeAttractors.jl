@@ -14,13 +14,16 @@ mutable struct State
     axis::Axis3
     colors::Tuple{RGBf, RGBf}
     init::Bool
+    timers::Tuple{Timer, Timer}
+    paused::Observable{Bool}
     function State()
         state = new()
         state.init = false
+        state.paused = true
         return state
     end
-    function State(segments, position, axis, colors, init)
-        new(segments, position, axis, colors, init)
+    function State(segments, position, axis, colors, init, timers, paused)
+        new(segments, position, axis, colors, init, timers, paused)
     end
 end
 
@@ -106,25 +109,26 @@ function set!(attractors::Attractors)
     display(GLMakie.Screen(), fig)
     return fig, T
 end
-    
+
+function set_timers(attractors::Attractors, t)
+    t1 = Timer(_ -> unroll!(attractors), 0; interval)
+    t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
+    attractors[].state.timers = (t1, t2)
+    attractors[].state.paused[] = false
+end
+
+function stop_timers(attractor::Attractor)
+    close.(attractor.state.timers)
+    attractor.state.paused[] = true
+end
+
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
     fig, = set!(attractors)
-    local t1, t2
-    function start_timers()
-        t1 = Timer(_ -> unroll!(attractors), 0; interval)
-        t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
-        paused = false
-    end
-    function stop_timers()
-        close(t1)
-        close(t2)
-        paused = true
-    end
     on(events(fig).window_open) do window_open
-        !paused && !window_open && stop_timers()
+        !paused && !window_open && stop_timers(attractors[])
     end
-    paused || start_timers()
+    paused || set_timers(attractors, t)
     return attractors
 end
 
@@ -177,10 +181,13 @@ function Base.show(io::IO, attractor::Attractor)
 end
 
 function Base.display(attractors::Vector{<:Attractor})
-    (; fig) = attractors[]
+    attractor = attractors[]
+    (; fig) = attractor
+    if attractor.state.paused[]
+        show(stdout, "text/plain", attractors)
+        println()
+    end
     (isempty(fig.content) || events(fig).window_open[]) && return
-    show(stdout, "text/plain", attractors)
-    println()
     display(GLMakie.Screen(), fig)
 end
 
