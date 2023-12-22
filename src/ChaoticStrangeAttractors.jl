@@ -1,12 +1,17 @@
 module ChaoticStrangeAttractors
 
-export attract!, Attractor, AttractorSet, cycle_colors, Rossler, Lorenz, Aizawa
+export attract!, Attractor, AttractorSet, cycle_colors, Instantiate,
+       Rossler, Lorenz, Aizawa
 
 using Printf
 using GLMakie
 using .Iterators: peel
 
 const interval = 0.05
+
+struct Instantiate
+    t::Float64
+end
 
 mutable struct State
     segments::Lines{Tuple{Vector{Point{3, Float32}}}}
@@ -144,6 +149,14 @@ function attract!(attractors::Attractors = Rossler();
     return attractors
 end
 
+function attract!(attractors::Attractors, time::Instantiate)
+    (; t) = time
+    for attractor ∈ attractors, _ ∈ 1:t÷attractor.dt
+        attractor()
+    end
+    attract!(attractors; paused = true)
+end
+
 function attract!(
     file_path  :: String,
     attractors :: Attractors = Aizawa();
@@ -209,5 +222,12 @@ Base.show(io::IO, ::T) where T <: AttractorSet = println(io, T)
 Base.getindex(attractor::Attractor) = attractor
 
 Base.getindex(attractors::Vector{<:Attractor}) = first(attractors)
+
+Base.iterate(attractor::Attractor, i = 1) = (i > 1 ? nothing : (attractor, 2))
+
+function Base.iterate(attractors::AttractorSet, i = 1)
+    (; attractor) = attractors
+    i > length(attractor) ? nothing : (attractor, i + 1)
+end
 
 end
