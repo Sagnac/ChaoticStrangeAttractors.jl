@@ -10,16 +10,31 @@ end
 
 macro evolve!()
     quote
+        if attractor!.state.reverse
+            if attractor!.points[1] |> length |> isone
+                attractor!.state.paused[] = true
+                attractor!.state.reverse = false
+            else
+                for coord ∈ attractor!.points
+                    pop!(coord)
+                end
+            end
+            for (i, v) ∈ pairs((:x, :y, :z))
+                setfield!(attractor!, v, attractor!.points[i][end])
+            end
+            attractor!.t -= dt
+            return
+        end
         x′ = x + dx_dt * dt
         y′ = y + dy_dt * dt
         z′ = z + dz_dt * dt
-        push!(attractor!.points[1], x′)
-        push!(attractor!.points[2], y′)
-        push!(attractor!.points[3], z′)
         attractor!.x = x′
         attractor!.y = y′
         attractor!.z = z′
         attractor!.t += dt
+        for (i, v) ∈ pairs((x′, y′, z′))
+            push!(attractor!.points[i], v)
+        end
     end |> esc
 end
 

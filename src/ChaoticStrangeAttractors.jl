@@ -16,14 +16,16 @@ mutable struct State
     init::Bool
     timers::Tuple{Timer, Timer}
     paused::Observable{Bool}
+    reverse::Bool
     function State()
         state = new()
         state.init = false
         state.paused = true
+        state.reverse = false
         return state
     end
-    function State(segments, position, axis, colors, init, timers, paused)
-        new(segments, position, axis, colors, init, timers, paused)
+    function State(segments, position, axis, colors, init, timers, paused, reverse)
+        new(segments, position, axis, colors, init, timers, paused, reverse)
     end
 end
 
@@ -51,7 +53,7 @@ function (cycle::Colors)()
     cycle.selection = (line_selection, point_selection)
 end
 
-function unroll!(attractor!::Attractor)
+function unroll!(attractor!::Attractor, interval::Real)
     (; segments, position, axis, colors) = attractor!.state
     for i = 1:div(interval, attractor!.dt)
         attractor!()
@@ -65,10 +67,10 @@ function unroll!(attractor!::Attractor)
     return
 end
 
-function unroll!(attractor_set::AttractorSet)
+function unroll!(attractor_set::AttractorSet, interval::Real)
     attractors = attractor_set.attractor
     for attractor ∈ attractors
-        unroll!(attractor)
+        unroll!(attractor, interval)
     end
 end
 
@@ -115,25 +117,42 @@ function set!(attractors::Attractors)
 end
 
 function set_timers(attractor::Attractor, t)
-    t1 = Timer(_ -> unroll!(attractor), 0; interval)
+    t1 = Timer(_ -> unroll!(attractor, interval), 0; interval)
     t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
     attractor.state.timers = (t1, t2)
-    attractor.state.paused[] = false
 end
 
 function stop_timers(attractor::Attractor)
     close.(attractor.state.timers)
-    attractor.state.paused[] = true
 end
 
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
     attractors, = set!(attractors)
     (; fig) = attractors
-    on(events(fig).window_open) do window_open
-        !paused && !window_open && stop_timers(attractors)
+    mouseevents = addmouseevents!(fig.scene)
+    onmouserightup(mouseevents) do _
+        println(mouseevents)
+        if Keyboard.left_control ∈ events(fig).keyboardstate
+            attractors.state.reverse = true
+        else
+            attractors.state.paused[] = !attractors.state.paused[]
+        end
     end
-    paused || set_timers(attractors, t)
+    on(events(fig).scroll) do wheel
+        if attractors.state.paused[]
+            unroll!(attractors, abs(wheel[2]))
+        end
+    end
+    on(attractors.state.paused) do paused
+        paused ? stop_timers(attractors) : set_timers(attractors, t)
+    end
+    on(events(fig).window_open) do window_open
+        if !attractors.state.paused[] && !window_open
+            attractors.state.paused[] = true
+        end
+    end
+    attractors.state.paused[] = paused
     return attractors
 end
 
