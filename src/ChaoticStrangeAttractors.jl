@@ -33,6 +33,7 @@ mutable struct State
 end
 
 include("Attractors.jl")
+include("Overload.jl")
 
 @kwdef mutable struct Colors
     palette::Vector{RGBf} = [
@@ -116,7 +117,7 @@ function set!(attractors::Attractors)
     end
     attractors = init!(attractors)
     display(GLMakie.Screen(), fig)
-    return attractors, T
+    return attractors
 end
 
 function pause(attractor::Attractor, state::Bool = !attractor.state.paused[])
@@ -135,7 +136,7 @@ end
 
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
-    attractors, = set!(attractors)
+    attractors = set!(attractors)
     (; fig) = attractors
     pause(attractors, paused)
     onmouserightup(_ -> pause(attractors), addmouseevents!(fig.scene))
@@ -162,7 +163,8 @@ function attract!(
     attractors :: Attractors = Aizawa();
     t          :: Real       = 125
 )
-    attractors, T = set!(attractors)
+    attractors = set!(attractors)
+    T = eltype(attractors)
     (; fig) = attractors
     itr = range(1, t / interval)
     duration = @sprintf("%.2f", t / 60)
@@ -176,58 +178,6 @@ function attract!(
         end
     end
     return attractors
-end
-
-function recap(io::IO, attractor::T) where T <: Attractor
-    (; fig) = attractor
-    print(io, T, " attractor:")
-    for name ∈ fieldnames(T)
-        name == :dt && break
-        if name == :x
-            @printf(io, "\n\nx_0 = %.4f\ny_0 = %.4f\nz_0 = %.4f\nΔt = %.4f\n",
-                first.(attractor.points)..., attractor.dt)
-        end
-        @printf(io, "\n%s = %.4f", name, getfield(attractor, name))
-    end
-    (isempty(fig.content) || events(fig).window_open[]) && return
-    display(GLMakie.Screen(), fig)
-end
-
-function show_params(io::IO, attractor::T) where T <: Attractor
-    for name ∈ fieldnames(T)
-        name == :x && break
-        @printf(io, "%s = %.4f, ", name, getfield(attractor, name))
-    end
-    @printf(io, "x_0 = %.4f, y_0 = %.4f, z_0 = %.4f", first.(attractor.points)...)
-end
-
-function Base.show(io::IO, attractor::Attractor)
-    f = get(io, :typeinfo, false) isa Type ? show_params : recap
-    f(io, attractor)
-end
-
-function Base.display(attractor_set::T) where T <: AttractorSet
-    (; attractor, fig, state) = attractor_set
-    if state.paused[]
-        println(T, " attractor field:")
-        show(stdout, "text/plain", attractor)
-        println()
-    end
-    (isempty(fig.content) || events(fig).window_open[]) && return
-    display(GLMakie.Screen(), fig)
-end
-
-Base.show(io::IO, ::T) where T <: AttractorSet = println(io, T)
-
-Base.getindex(attractor::Attractor) = attractor
-
-Base.getindex(attractors::Vector{<:Attractor}) = first(attractors)
-
-Base.iterate(attractor::Attractor, i = 1) = (i > 1 ? nothing : (attractor, 2))
-
-function Base.iterate(attractors::AttractorSet, i = 1)
-    (; attractor) = attractors
-    i > length(attractor) ? nothing : (attractor, i + 1)
 end
 
 end
