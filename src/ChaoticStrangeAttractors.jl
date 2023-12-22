@@ -114,24 +114,31 @@ function set!(attractors::Attractors)
     return attractors, T
 end
 
-function set_timers(attractor::Attractor, t)
+function pause(attractor::Attractor, state::Bool = !attractor.state.paused[])
+    attractor.state.paused[] = state
+end
+
+function set_timers(attractor::Attractor, t::Real)
     t1 = Timer(_ -> unroll!(attractor), 0; interval)
-    t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
+    t2 = Timer(_ -> t ≠ Inf ? stop_timers(attractor) : nothing, t)
     attractor.state.timers = (t1, t2)
-    attractor.state.paused[] = false
 end
 
 function stop_timers(attractor::Attractor)
     close.(attractor.state.timers)
-    attractor.state.paused[] = true
 end
 
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
     attractors, = set!(attractors)
     (; fig) = attractors
+    pause(attractors, paused)
+    onmouserightup(_ -> pause(attractors), addmouseevents!(fig.scene))
+    on(attractors.state.paused) do paused
+        paused ? stop_timers(attractors) : set_timers(attractors, t)
+    end
     on(events(fig).window_open) do window_open
-        !paused && !window_open && stop_timers(attractors)
+        !attractors.state.paused[] && !window_open && pause(attractors, true)
     end
     paused || set_timers(attractors, t)
     return attractors
