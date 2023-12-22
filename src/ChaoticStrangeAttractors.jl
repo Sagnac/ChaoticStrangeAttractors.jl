@@ -77,7 +77,7 @@ function init!(attractor::Attractor)
     (; x, y, z, fig, state) = attractor
     (; axis) = state
     (; palette, selection) = cycle_colors
-    colors = map(i -> palette[i], selection)
+    colors = ntuple(i -> palette[selection[i]], 2)
     cycle_colors()
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
