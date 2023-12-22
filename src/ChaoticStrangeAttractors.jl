@@ -1,6 +1,6 @@
 module ChaoticStrangeAttractors
 
-export attract!, Attractor, cycle_colors, Rossler, Lorenz, Aizawa
+export attract!, Attractor, AttractorSet, cycle_colors, Rossler, Lorenz, Aizawa
 
 using Printf
 using GLMakie
@@ -65,7 +65,8 @@ function unroll!(attractor!::Attractor)
     return
 end
 
-function unroll!(attractors::Vector{<:Attractor})
+function unroll!(attractor_set::AttractorSet)
+    attractors = attractor_set.attractor
     for attractor ∈ attractors
         unroll!(attractor)
     end
@@ -84,7 +85,7 @@ function init!(attractor::Attractor)
     for (name, value) ∈ pairs((; segments, position, colors, init))
         setfield!(attractor.state, name, value)
     end
-    return
+    return attractor
 end
 
 function init!(attractors::Vector{<:Attractor})
@@ -96,6 +97,9 @@ function init!(attractors::Vector{<:Attractor})
         attractor.state.axis = initial.state.axis
         init!(attractor)
     end
+    T = eltype(attractors)
+    attractors = AttractorSet{T}(attractors, initial.fig, initial.state)
+    return attractors
 end
 
 function set!(attractors::Attractors)
@@ -105,16 +109,16 @@ function set!(attractors::Attractors)
     if !attractor.state.init
         attractor.state.axis = Axis3(fig[1,1]; title = "$T attractor")
     end
-    init!(attractors)
+    attractors = init!(attractors)
     display(GLMakie.Screen(), fig)
-    return fig, T
+    return attractors, T
 end
 
-function set_timers(attractors::Attractors, t)
-    t1 = Timer(_ -> unroll!(attractors), 0; interval)
+function set_timers(attractor::Attractor, t)
+    t1 = Timer(_ -> unroll!(attractor), 0; interval)
     t2 = Timer(_ -> t ≠ Inf ? stop_timers() : nothing, t)
-    attractors[].state.timers = (t1, t2)
-    attractors[].state.paused[] = false
+    attractor.state.timers = (t1, t2)
+    attractor.state.paused[] = false
 end
 
 function stop_timers(attractor::Attractor)
@@ -124,9 +128,10 @@ end
 
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
-    fig, = set!(attractors)
+    attractors, = set!(attractors)
+    (; fig) = attractors
     on(events(fig).window_open) do window_open
-        !paused && !window_open && stop_timers(attractors[])
+        !paused && !window_open && stop_timers(attractors)
     end
     paused || set_timers(attractors, t)
     return attractors
@@ -137,7 +142,8 @@ function attract!(
     attractors :: Attractors = Aizawa();
     t          :: Real       = 125
 )
-    fig, T = set!(attractors)
+    attractors, T = set!(attractors)
+    (; fig) = attractors
     itr = range(1, t / interval)
     duration = @sprintf("%.2f", t / 60)
     @info "Encoding the $T attractor to $file_path, \
@@ -180,16 +186,18 @@ function Base.show(io::IO, attractor::Attractor)
     f(io, attractor)
 end
 
-function Base.display(attractors::Vector{<:Attractor})
-    attractor = attractors[]
-    (; fig) = attractor
-    if attractor.state.paused[]
-        show(stdout, "text/plain", attractors)
+function Base.display(attractor_set::T) where T <: AttractorSet
+    (; attractor, fig, state) = attractor_set
+    if state.paused[]
+        println(T, " attractor field:")
+        show(stdout, "text/plain", attractor)
         println()
     end
     (isempty(fig.content) || events(fig).window_open[]) && return
     display(GLMakie.Screen(), fig)
 end
+
+Base.show(io::IO, ::T) where T <: AttractorSet = println(io, T)
 
 Base.getindex(attractor::Attractor) = attractor
 
