@@ -53,5 +53,5 @@ iterate(attractor::Attractor, i::Int = 1) = (i > 1 ? nothing : (attractor, 2))
 
 function iterate(attractors::AttractorSet, i::Int = 1)
     (; attractor) = attractors
-    i > length(attractor) ? nothing : (attractor, i + 1)
+    i > length(attractor) ? nothing : (attractor[i], i + 1)
 end

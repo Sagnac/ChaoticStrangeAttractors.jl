@@ -18,17 +18,11 @@ mutable struct State
     position::Scatter{Tuple{Vector{Point{3, Float32}}}}
     axis::Axis3
     colors::Tuple{RGBf, RGBf}
-    init::Bool
     timers::Tuple{Timer, Timer}
     paused::Observable{Bool}
-    function State()
-        state = new()
-        state.init = false
-        state.paused = true
-        return state
-    end
-    function State(segments, position, axis, colors, init, timers, paused)
-        new(segments, position, axis, colors, init, timers, paused)
+    State() = new()
+    function State(segments, position, axis, colors, timers, paused)
+        new(segments, position, axis, colors, timers, paused)
     end
 end
 
@@ -79,7 +73,6 @@ function unroll!(attractor_set::AttractorSet)
 end
 
 function init!(attractor::Attractor)
-    attractor.state.init && return
     (; x, y, z, fig, state) = attractor
     (; axis) = state
     (; palette, selection) = cycle_colors
@@ -88,7 +81,7 @@ function init!(attractor::Attractor)
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
     init = true
-    for (name, value) ∈ pairs((; segments, position, colors, init))
+    for (name, value) ∈ pairs((; segments, position, colors))
         setfield!(attractor.state, name, value)
     end
     return attractor
@@ -98,7 +91,6 @@ function init!(attractors::Vector{<:Attractor})
     initial, links = peel(attractors)
     init!(initial)
     for attractor ∈ links
-        attractor.state.init && continue
         attractor.fig = initial.fig
         attractor.state.axis = initial.state.axis
         init!(attractor)
@@ -108,13 +100,14 @@ function init!(attractors::Vector{<:Attractor})
     return attractors
 end
 
+init!(set::AttractorSet) = init!(set.attractor)
+
 function set!(attractors::Attractors)
     attractor = attractors[]
-    (; fig) = attractor
+    fig = Figure()
+    attractor.fig = fig
     T = typeof(attractor)
-    if !attractor.state.init
-        attractor.state.axis = Axis3(fig[1,1]; title = "$T attractor")
-    end
+    attractor.state.axis = Axis3(fig[1,1]; title = "$T attractor")
     attractors = init!(attractors)
     display(GLMakie.Screen(), fig)
     return attractors
@@ -126,7 +119,7 @@ end
 
 function set_timers(attractor::Attractor, t::Real)
     t1 = Timer(_ -> unroll!(attractor), 0; interval)
-    t2 = Timer(_ -> t ≠ Inf ? stop_timers(attractor) : nothing, t)
+    t2 = Timer(_ -> t ≠ Inf ? pause(attractor, true) : nothing, t)
     attractor.state.timers = (t1, t2)
 end
 
@@ -138,7 +131,7 @@ function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
     attractors = set!(attractors)
     (; fig) = attractors
-    pause(attractors, paused)
+    attractors.state.paused = paused
     onmouserightup(_ -> pause(attractors), addmouseevents!(fig.scene))
     on(attractors.state.paused) do paused
         paused ? stop_timers(attractors) : set_timers(attractors, t)
