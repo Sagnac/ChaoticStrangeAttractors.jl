@@ -97,3 +97,26 @@ function (attractor!::Aizawa)()
     @evolve!
     return
 end
+
+@kwdef mutable struct Sprott <: Attractor
+     a::Float64 =  2.0
+     b::Float64 =  2.0
+     x::Float64 =  1.0
+     y::Float64 =  0.0
+     z::Float64 =  0.0
+     t::Float64 =  0.0
+    dt::Float64 =  0.001
+    fig::Figure = Figure()
+    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    state::State = State()
+end
+
+function (attractor!::Sprott)()
+    (; a, b) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = y + a*x*y + x*z
+    dy_dt = 1 - b*x^2 + y*z
+    dz_dt = x - x^2 - y^2
+    @evolve!
+    return
+end
