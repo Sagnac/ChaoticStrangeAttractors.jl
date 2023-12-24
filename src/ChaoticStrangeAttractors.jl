@@ -99,7 +99,6 @@ function init!(attractors::Vector{<:Attractor})
         attractor.state.timers = initial.state.timers
         init!(attractor)
     end
-    T = eltype(attractors)
     return attractors
 end
 
@@ -107,11 +106,16 @@ function set!(attractors::Attractors)
     attractor = attractors[]
     fig = Figure()
     attractor.fig = fig
-    T = typeof(attractor)
-    attractor.state.axis = Axis3(fig[1,1]; title = "$T attractor")
+    T = eltype(attractors)
+    if T == Attractor
+        title = join(attractors .|> typeof |> union, ", ", ", & ") * " attractors"
+    else
+        title = "$T attractor"
+    end
+    attractor.state.axis = Axis3(fig[1,1]; title)
     attractors = init!(attractors)
     display(GLMakie.Screen(), fig)
-    return attractors
+    return attractors, title
 end
 
 function pause(attractor::Attractor, state::Bool = !attractor.state.paused[])
@@ -132,7 +136,7 @@ end
 
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
-    attractors = set!(attractors)
+    attractors, = set!(attractors)
     attractor = attractors[]
     (; fig) = attractor
     for attractor ∈ attractors
@@ -162,13 +166,12 @@ function attract!(
     attractors :: Attractors = Aizawa();
     t          :: Real       = 125
 )
-    attractors = set!(attractors)
-    T = eltype(attractors)
+    attractors, title = set!(attractors)
     attractor = attractors[]
     (; fig) = attractor
     itr = range(1, t / interval)
     duration = @sprintf("%.2f", t / 60)
-    @info "Encoding the $T attractor to $file_path, \
+    @info "Encoding the $title to $file_path, \
         this will take approximately $duration minutes."
     record(fig, file_path; visible = true, framerate = 20) do io
         for i in itr

@@ -1,4 +1,4 @@
-import Base: show, display, getindex, iterate
+import Base: show, display, getindex, iterate, eltype
 
 function recap(io::IO, attractor::T) where T <: Attractor
     (; fig) = attractor
@@ -44,3 +44,5 @@ getindex(attractor::Attractor) = attractor
 getindex(attractors::Vector{<:Attractor}) = first(attractors)
 
 iterate(attractor::Attractor, i::Int = 1) = (i > 1 ? nothing : (attractor, 2))
+
+eltype(::T) where {T <: Attractor} = T
