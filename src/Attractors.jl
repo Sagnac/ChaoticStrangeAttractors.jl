@@ -7,9 +7,7 @@ macro evolve!()
         x′ = x + dx_dt * dt
         y′ = y + dy_dt * dt
         z′ = z + dz_dt * dt
-        push!(attractor!.points[1], x′)
-        push!(attractor!.points[2], y′)
-        push!(attractor!.points[3], z′)
+        push!(attractor!.points, Point3(x′, y′, z′))
         attractor!.x = x′
         attractor!.y = y′
         attractor!.z = z′
@@ -27,7 +25,7 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
     state::State = State()
 end
 
@@ -51,7 +49,7 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
     state::State = State()
 end
 
@@ -78,7 +76,7 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
     state::State = State()
 end
 
@@ -101,7 +99,7 @@ end
      t::Float64 =  0.0
     dt::Float64 =  0.001
     fig::Figure = Figure()
-    points::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}} = [x], [y], [z]
+    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
     state::State = State()
 end
 

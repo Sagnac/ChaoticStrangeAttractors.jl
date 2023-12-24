@@ -14,8 +14,8 @@ struct Instantiate
 end
 
 mutable struct State
-    segments::Lines{Tuple{Vector{Point{3, Float32}}}}
-    position::Scatter{Tuple{Vector{Point{3, Float32}}}}
+    segments::Lines{Tuple{Vector{Point3f}}}
+    position::Scatter{Tuple{Vector{Point3f}}}
     axis::Axis3
     colors::Tuple{RGBf, RGBf}
     timers::Vector{Timer}
@@ -63,8 +63,8 @@ function unroll!(attractor!::Attractor)
     end
     delete!(axis, segments)
     delete!(axis, position)
-    segments = lines!(axis, attractor!.points...; color = colors[1])
-    position = scatter!(axis, last.(attractor!.points)...; color = colors[2])
+    segments = lines!(axis, attractor!.points; color = colors[1])
+    position = scatter!(axis, last(attractor!.points); color = colors[2])
     attractor!.state.segments = segments
     attractor!.state.position = position
     return
