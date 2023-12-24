@@ -2,12 +2,6 @@ abstract type Attractor end
 
 const Attractors = Union{Attractor, Vector{<:Attractor}}
 
-struct AttractorSet{T <: Attractor} <: Attractor
-    attractor::Vector{T}
-    fig::Figure
-    state::State
-end
-
 macro evolve!()
     quote
         x′ = x + dx_dt * dt

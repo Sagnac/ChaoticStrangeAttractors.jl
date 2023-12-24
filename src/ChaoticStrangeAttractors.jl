@@ -1,6 +1,6 @@
 module ChaoticStrangeAttractors
 
-export attract!, Attractor, AttractorSet, cycle_colors, Instantiate,
+export attract!, Attractor, cycle_colors, Instantiate,
        Rossler, Lorenz, Aizawa, Sprott
 
 using Printf
@@ -18,17 +18,16 @@ mutable struct State
     position::Scatter{Tuple{Vector{Point{3, Float32}}}}
     axis::Axis3
     colors::Tuple{RGBf, RGBf}
-    init::Bool
-    timers::Tuple{Timer, Timer}
+    timers::Vector{Timer}
     paused::Observable{Bool}
     function State()
         state = new()
-        state.init = false
+        state.timers = [Timer(0.0) for i = 1:2]
         state.paused = true
         return state
     end
-    function State(segments, position, axis, colors, init, timers, paused)
-        new(segments, position, axis, colors, init, timers, paused)
+    function State(segments, position, axis, colors, timers, paused)
+        new(segments, position, axis, colors, timers, paused)
     end
 end
 
@@ -71,15 +70,13 @@ function unroll!(attractor!::Attractor)
     return
 end
 
-function unroll!(attractor_set::AttractorSet)
-    attractors = attractor_set.attractor
+function unroll!(attractors::Vector{<:Attractor})
     for attractor ∈ attractors
         unroll!(attractor)
     end
 end
 
 function init!(attractor::Attractor)
-    attractor.state.init && return
     (; x, y, z, fig, state) = attractor
     (; axis) = state
     (; palette, selection) = cycle_colors
@@ -87,8 +84,7 @@ function init!(attractor::Attractor)
     cycle_colors()
     segments = lines!(axis, attractor.points...; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
-    init = true
-    for (name, value) ∈ pairs((; segments, position, colors, init))
+    for (name, value) ∈ pairs((; segments, position, colors))
         setfield!(attractor.state, name, value)
     end
     return attractor
@@ -98,23 +94,21 @@ function init!(attractors::Vector{<:Attractor})
     initial, links = peel(attractors)
     init!(initial)
     for attractor ∈ links
-        attractor.state.init && continue
         attractor.fig = initial.fig
         attractor.state.axis = initial.state.axis
+        attractor.state.timers = initial.state.timers
         init!(attractor)
     end
     T = eltype(attractors)
-    attractors = AttractorSet{T}(attractors, initial.fig, initial.state)
     return attractors
 end
 
 function set!(attractors::Attractors)
     attractor = attractors[]
-    (; fig) = attractor
+    fig = Figure()
+    attractor.fig = fig
     T = typeof(attractor)
-    if !attractor.state.init
-        attractor.state.axis = Axis3(fig[1,1]; title = "$T attractor")
-    end
+    attractor.state.axis = Axis3(fig[1,1]; title = "$T attractor")
     attractors = init!(attractors)
     display(GLMakie.Screen(), fig)
     return attractors
@@ -124,10 +118,12 @@ function pause(attractor::Attractor, state::Bool = !attractor.state.paused[])
     attractor.state.paused[] = state
 end
 
-function set_timers(attractor::Attractor, t::Real)
-    t1 = Timer(_ -> unroll!(attractor), 0; interval)
-    t2 = Timer(_ -> t ≠ Inf ? stop_timers(attractor) : nothing, t)
-    attractor.state.timers = (t1, t2)
+function start_timers(attractors::Attractors, t::Real)
+    attractor = attractors[]
+    attractor.state.timers[1] = Timer(_ -> unroll!(attractors), 0; interval)
+    attractor.state.timers[2] = Timer(t) do _
+        t ≠ Inf ? pause(attractor, true) : nothing
+    end
 end
 
 function stop_timers(attractor::Attractor)
@@ -137,16 +133,19 @@ end
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
     attractors = set!(attractors)
-    (; fig) = attractors
-    pause(attractors, paused)
-    onmouserightup(_ -> pause(attractors), addmouseevents!(fig.scene))
-    on(attractors.state.paused) do paused
-        paused ? stop_timers(attractors) : set_timers(attractors, t)
+    attractor = attractors[]
+    (; fig) = attractor
+    for attractor ∈ attractors
+        attractor.state.paused = paused
+    end
+    onmouserightup(_ -> pause(attractor), addmouseevents!(fig.scene))
+    on(attractor.state.paused) do paused
+        paused ? stop_timers(attractor) : start_timers(attractors, t)
     end
     on(events(fig).window_open) do window_open
-        !attractors.state.paused[] && !window_open && pause(attractors, true)
+        !attractor.state.paused[] && !window_open && pause(attractor, true)
     end
-    paused || set_timers(attractors, t)
+    paused || start_timers(attractors, t)
     return attractors
 end
 
@@ -165,7 +164,8 @@ function attract!(
 )
     attractors = set!(attractors)
     T = eltype(attractors)
-    (; fig) = attractors
+    attractor = attractors[]
+    (; fig) = attractor
     itr = range(1, t / interval)
     duration = @sprintf("%.2f", t / 60)
     @info "Encoding the $T attractor to $file_path, \
