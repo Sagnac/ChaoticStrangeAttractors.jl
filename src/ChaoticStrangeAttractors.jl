@@ -23,7 +23,6 @@ mutable struct State
     function State()
         state = new()
         state.timers = [Timer(0.0) for i = 1:2]
-        state.paused = true
         return state
     end
     function State(segments, position, axis, colors, timers, paused)
@@ -87,7 +86,7 @@ function init!(attractor::Attractor)
     for (name, value) ∈ pairs((; segments, position, colors))
         setfield!(attractor.state, name, value)
     end
-    return attractor
+    return
 end
 
 function init!(attractors::Vector{<:Attractor})
@@ -99,7 +98,7 @@ function init!(attractors::Vector{<:Attractor})
         attractor.state.timers = initial.state.timers
         init!(attractor)
     end
-    return attractors
+    return
 end
 
 function set!(attractors::Attractors)
@@ -113,9 +112,9 @@ function set!(attractors::Attractors)
         title = "$T attractor"
     end
     attractor.state.axis = Axis3(fig[1,1]; title)
-    attractors = init!(attractors)
+    init!(attractors)
     display(GLMakie.Screen(), fig)
-    return attractors, title
+    return title
 end
 
 function pause(attractor::Attractor, state::Bool = !attractor.state.paused[])
@@ -136,7 +135,7 @@ end
 
 function attract!(attractors::Attractors = Rossler();
                   t::Real = 125, paused::Bool = false)
-    attractors, = set!(attractors)
+    set!(attractors)
     attractor = attractors[]
     (; fig) = attractor
     for attractor ∈ attractors
@@ -166,7 +165,7 @@ function attract!(
     attractors :: Attractors = Aizawa();
     t          :: Real       = 125
 )
-    attractors, title = set!(attractors)
+    title = set!(attractors)
     attractor = attractors[]
     (; fig) = attractor
     itr = range(1, t / interval)
