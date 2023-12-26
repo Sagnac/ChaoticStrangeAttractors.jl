@@ -149,7 +149,7 @@ function attract!(attractors::Attractors = Rossler();
         !attractor.state.paused[] && !window_open && pause(attractor, true)
     end
     paused || start_timers(attractors, t)
-    return
+    return attractors
 end
 
 function attract!(attractors::Attractors, time::Instantiate)
@@ -179,7 +179,7 @@ function attract!(
             recordframe!(io)
         end
     end
-    return
+    return attractors
 end
 
 end
