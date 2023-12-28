@@ -155,7 +155,7 @@ end
 
 function attract!(attractors::Attractors, time::Instantiate)
     (; t) = time
-    for attractor ∈ attractors, _ ∈ 1:t÷attractor.dt
+    for attractor ∈ attractors, _ ∈ 1:t/attractor.dt
         attractor()
     end
     attract!(attractors; paused = true)
