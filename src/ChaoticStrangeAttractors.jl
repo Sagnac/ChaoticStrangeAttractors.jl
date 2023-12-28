@@ -23,6 +23,7 @@ mutable struct State
     function State()
         state = new()
         state.timers = [Timer(0.0) for i = 1:2]
+        state.paused = true
         return state
     end
     function State(segments, position, axis, colors, timers, paused)

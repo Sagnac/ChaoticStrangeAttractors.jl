@@ -23,9 +23,10 @@ function show_params(io::IO, attractor::T) where T <: Attractor
     @printf(io, "x_0 = %.4f, y_0 = %.4f, z_0 = %.4f", first(attractor.points)...)
 end
 
-function show(io::IO, attractor::Attractor)
-    f = get(io, :typeinfo, false) isa Type ? show_params : recap
+function show(io::IO, ::MIME"text/plain", attractor::Attractor)
+    f = haskey(io, :typeinfo) ? show_params : recap
     f(io, attractor)
+    return
 end
 
 function display(attractors::Vector{<:Attractor})
