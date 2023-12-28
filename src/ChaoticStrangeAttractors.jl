@@ -82,7 +82,7 @@ function init!(attractor::Attractor)
     (; palette, selection) = cycle_colors
     colors = ntuple(i -> palette[selection[i]], 2)
     cycle_colors()
-    segments = lines!(axis, attractor.points...; color = colors[1])
+    segments = lines!(axis, attractor.points; color = colors[1])
     position = scatter!(axis, x, y, z; color = colors[2])
     for (name, value) ∈ pairs((; segments, position, colors))
         setfield!(attractor.state, name, value)
