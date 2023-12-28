@@ -108,7 +108,7 @@ function set!(attractors::Attractors)
     attractor.fig = fig
     T = eltype(attractors)
     if T == Attractor
-        title = join(attractors .|> typeof |> union, ", ", ", & ") * " attractors"
+        title = join(attractors .|> typeof |> union, ", ") * " attractors"
     else
         title = "$T attractor"
     end
