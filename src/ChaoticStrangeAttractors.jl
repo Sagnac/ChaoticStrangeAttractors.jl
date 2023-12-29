@@ -102,7 +102,7 @@ function init!(attractors::Vector{<:Attractor})
     return
 end
 
-function set!(attractors::Attractors)
+function set!(attractors::AttractorSet)
     attractor = attractors[]
     fig = Figure()
     attractor.fig = fig
@@ -122,7 +122,7 @@ function pause(attractor::Attractor, state::Bool = !attractor.state.paused[])
     attractor.state.paused[] = state
 end
 
-function start_timers(attractors::Attractors, t::Real)
+function start_timers(attractors::AttractorSet, t::Real)
     attractor = attractors[]
     attractor.state.timers[1] = Timer(_ -> unroll!(attractors), 0; interval)
     attractor.state.timers[2] = Timer(t) do _
@@ -134,7 +134,7 @@ function stop_timers(attractor::Attractor)
     close.(attractor.state.timers)
 end
 
-function attract!(attractors::Attractors = Rossler();
+function attract!(attractors::AttractorSet = Rossler();
                   t::Real = 125, paused::Bool = false)
     set!(attractors)
     attractor = attractors[]
@@ -153,7 +153,7 @@ function attract!(attractors::Attractors = Rossler();
     return attractors
 end
 
-function attract!(attractors::Attractors, time::Instantiate)
+function attract!(attractors::AttractorSet, time::Instantiate)
     (; t) = time
     for attractor ∈ attractors, _ ∈ 1:t/attractor.dt
         attractor()
@@ -163,7 +163,7 @@ end
 
 function attract!(
     file_path  :: String,
-    attractors :: Attractors = Aizawa();
+    attractors :: AttractorSet = Aizawa();
     t          :: Real       = 125
 )
     title = set!(attractors)

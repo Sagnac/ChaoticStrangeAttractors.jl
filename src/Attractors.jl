@@ -1,6 +1,6 @@
 abstract type Attractor end
 
-const Attractors = Union{Attractor, Vector{<:Attractor}}
+const AttractorSet = Union{Attractor, Vector{<:Attractor}}
 
 macro evolve!()
     quote
