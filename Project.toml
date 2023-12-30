@@ -1,7 +1,7 @@
 name = "ChaoticStrangeAttractors"
 uuid = "1d69a608-6c8d-40bf-876f-5034bcfb4aa1"
 authors = ["Sagnac"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
