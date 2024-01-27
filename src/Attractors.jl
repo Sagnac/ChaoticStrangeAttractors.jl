@@ -112,3 +112,25 @@ function (attractor!::Sprott)()
     @evolve!
     return
 end
+
+@kwdef mutable struct Thomas <: Attractor
+     b::Float64 =  0.18
+     x::Float64 =  0.3
+     y::Float64 =  0.0
+     z::Float64 =  0.0
+     t::Float64 =  0.0
+    dt::Float64 =  0.001
+    fig::Figure = Figure()
+    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
+    state::State = State()
+end
+
+function (attractor!::Thomas)()
+    (; b) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = sin(y) - b * x
+    dy_dt = sin(z) - b * y
+    dz_dt = sin(x) - b * z
+    @evolve!
+    return
+end
