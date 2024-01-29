@@ -124,3 +124,22 @@ function (attractor!::Thomas)()
     @evolve!
     return
 end
+
+@kwdef mutable struct Halvorsen <: Attractor
+    a::Float64 =  1.3
+    b::Float64 =  4.0
+    x::Float64 = -5.0
+    y::Float64 =  0.0
+    z::Float64 =  0.0
+    @fields
+end
+
+function (attractor!::Halvorsen)()
+    (; a, b) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = -a * x - b * (y + z) - y^2
+    dy_dt = -a * y - b * (z + x) - z^2
+    dz_dt = -a * z - b * (x + y) - x^2
+    @evolve!
+    return
+end
