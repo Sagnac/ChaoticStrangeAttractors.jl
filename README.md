@@ -23,7 +23,7 @@ lorenz = attract!([Lorenz(; x) for x ∈ 6:8])
 ```
 
 ```julia
-# instantiate a system's trajectory at time t
+# instantiate a system's trajectory / path at time t
 attract!(Sprott(), Instantiate(65))
 ```
 
@@ -40,3 +40,8 @@ attract!("rossler.mp4", Rossler(), t = 54)
 * Lorenz
 * Aizawa
 * Sprott
+* Thomas
+* Halvorsen
+* DoubleScroll
+* WINDMI
+* Chua
