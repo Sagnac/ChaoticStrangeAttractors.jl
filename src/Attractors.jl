@@ -161,3 +161,22 @@ function (attractor!::DoubleScroll)()
     @evolve!
     return
 end
+
+@kwdef mutable struct WINDMI <: Attractor
+    a::Float64 = 0.7
+    b::Float64 = 2.5
+    x::Float64 = 0.0
+    y::Float64 = 0.8
+    z::Float64 = 0.0
+    @fields
+end
+
+function (attractor!::WINDMI)()
+    (; a, b) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = y
+    dy_dt = z
+    dz_dt = -a * z - y + b - exp(x)
+    @evolve!
+    return
+end

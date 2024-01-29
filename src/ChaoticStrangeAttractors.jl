@@ -1,7 +1,7 @@
 module ChaoticStrangeAttractors
 
 export attract!, Attractor, cycle_colors, Instantiate,
-       Rossler, Lorenz, Aizawa, Sprott, Thomas, Halvorsen, DoubleScroll
+       Rossler, Lorenz, Aizawa, Sprott, Thomas, Halvorsen, DoubleScroll, WINDMI
 
 using Printf
 using GLMakie
