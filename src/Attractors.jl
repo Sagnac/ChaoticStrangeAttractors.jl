@@ -143,3 +143,21 @@ function (attractor!::Halvorsen)()
     @evolve!
     return
 end
+
+@kwdef mutable struct DoubleScroll <: Attractor
+    a::Float64 = 0.8
+    x::Float64 = 0.01
+    y::Float64 = 0.01
+    z::Float64 = 0.00
+    @fields
+end
+
+function (attractor!::DoubleScroll)()
+    (; a) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = y
+    dy_dt = z
+    dz_dt = -a * (z + y + x - sign(x))
+    @evolve!
+    return
+end
