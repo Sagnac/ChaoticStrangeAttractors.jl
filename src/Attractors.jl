@@ -15,18 +15,24 @@ macro evolve!()
     end |> esc
 end
 
+macro fields()
+    quote
+         t::Float64 = 0.0
+        dt::Float64 = 0.001
+        fig::Figure = Figure()
+        points::Vector{Point3{Float64}} = [Point3(x, y, z)]
+        state::State = State()
+    end |> esc
+end
+
 @kwdef mutable struct Rossler <: Attractor
-     a::Float64 =  0.1
-     b::Float64 =  0.1
-     c::Float64 = 18.0
-     x::Float64 = 21.0
-     y::Float64 =  0.0
-     z::Float64 =  0.0
-     t::Float64 =  0.0
-    dt::Float64 =  0.001
-    fig::Figure = Figure()
-    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
-    state::State = State()
+    a::Float64 =  0.1
+    b::Float64 =  0.1
+    c::Float64 = 18.0
+    x::Float64 = 21.0
+    y::Float64 =  0.0
+    z::Float64 =  0.0
+    @fields
 end
 
 function (attractor!::Rossler)()
@@ -40,17 +46,13 @@ function (attractor!::Rossler)()
 end
 
 @kwdef mutable struct Lorenz <: Attractor
-     σ::Float64 = 10.0
-     ρ::Float64 = 28.0
-     β::Float64 =  8/3
-     x::Float64 =  4.0
-     y::Float64 =  7.0
-     z::Float64 =  5.0
-     t::Float64 =  0.0
-    dt::Float64 =  0.001
-    fig::Figure = Figure()
-    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
-    state::State = State()
+    σ::Float64 = 10.0
+    ρ::Float64 = 28.0
+    β::Float64 =  8/3
+    x::Float64 =  4.0
+    y::Float64 =  7.0
+    z::Float64 =  5.0
+    @fields
 end
 
 function (attractor!::Lorenz)()
@@ -64,20 +66,16 @@ function (attractor!::Lorenz)()
 end
 
 @kwdef mutable struct Aizawa <: Attractor
-     a::Float64 =  0.95
-     b::Float64 =  0.7
-     c::Float64 =  0.6
-     d::Float64 =  3.5
-     e::Float64 =  0.25
-     f::Float64 =  0.1
-     x::Float64 =  1.0
-     y::Float64 =  0.0
-     z::Float64 =  0.0
-     t::Float64 =  0.0
-    dt::Float64 =  0.001
-    fig::Figure = Figure()
-    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
-    state::State = State()
+    a::Float64 = 0.95
+    b::Float64 = 0.7
+    c::Float64 = 0.6
+    d::Float64 = 3.5
+    e::Float64 = 0.25
+    f::Float64 = 0.1
+    x::Float64 = 1.0
+    y::Float64 = 0.0
+    z::Float64 = 0.0
+    @fields
 end
 
 function (attractor!::Aizawa)()
@@ -91,16 +89,12 @@ function (attractor!::Aizawa)()
 end
 
 @kwdef mutable struct Sprott <: Attractor
-     a::Float64 =  2.0
-     b::Float64 =  2.0
-     x::Float64 =  1.0
-     y::Float64 =  0.0
-     z::Float64 =  0.0
-     t::Float64 =  0.0
-    dt::Float64 =  0.001
-    fig::Figure = Figure()
-    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
-    state::State = State()
+    a::Float64 = 2.0
+    b::Float64 = 2.0
+    x::Float64 = 1.0
+    y::Float64 = 0.0
+    z::Float64 = 0.0
+    @fields
 end
 
 function (attractor!::Sprott)()
@@ -114,15 +108,11 @@ function (attractor!::Sprott)()
 end
 
 @kwdef mutable struct Thomas <: Attractor
-     b::Float64 =  0.18
-     x::Float64 =  0.3
-     y::Float64 =  0.0
-     z::Float64 =  0.0
-     t::Float64 =  0.0
-    dt::Float64 =  0.001
-    fig::Figure = Figure()
-    points::Vector{Point3{Float64}} = [Point3(x, y, z)]
-    state::State = State()
+    b::Float64 = 0.18
+    x::Float64 = 0.3
+    y::Float64 = 0.0
+    z::Float64 = 0.0
+    @fields
 end
 
 function (attractor!::Thomas)()
