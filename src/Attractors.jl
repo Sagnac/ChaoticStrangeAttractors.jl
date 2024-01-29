@@ -180,3 +180,24 @@ function (attractor!::WINDMI)()
     @evolve!
     return
 end
+
+@kwdef mutable struct Chua <: Attractor
+    α::Float64 =   9.0
+    β::Float64 = 100/7
+    a::Float64 =   8/7
+    b::Float64 =   5/7
+    x::Float64 =   0.0
+    y::Float64 =   0.0
+    z::Float64 =   0.7
+    @fields
+end
+
+function (attractor!::Chua)()
+    (; a, b, α, β) = attractor!
+    (; x, y, z, dt) = attractor!
+    dx_dt = α * (y - x + b * x + 0.5(a - b) * (abs(x + 1) - abs(x - 1)))
+    dy_dt = x - y + z
+    dz_dt = -β * y
+    @evolve!
+    return
+end
