@@ -59,7 +59,7 @@ end
 function unroll!(attractor!::Attractor)
     (; segments, position, axis, colors) = attractor!.state
     for i = 1:div(interval, attractor!.dt)
-        attractor!()
+        evolve!(attractor!)
     end
     delete!(axis, segments)
     delete!(axis, position)
@@ -156,7 +156,7 @@ end
 function attract!(attractors::AttractorSet, time::Instantiate)
     (; t) = time
     for attractor ∈ attractors, _ ∈ 1:t/attractor.dt
-        attractor()
+        evolve!(attractor)
     end
     attract!(attractors; paused = true)
 end
