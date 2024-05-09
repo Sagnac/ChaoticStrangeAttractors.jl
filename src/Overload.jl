@@ -6,7 +6,7 @@ function recap(io::IO, attractor::T) where T <: Attractor
     for name ∈ fieldnames(T)
         name == :dt && break
         if name == :x
-            @printf(io, "\n\nx_0 = %.4f\ny_0 = %.4f\nz_0 = %.4f\nΔt = %.4f\n",
+            @printf(io, "\n\nx_0 = %.4f\ny_0 = %.4f\nz_0 = %.4f\nΔt = %.4g\n",
                 first(attractor.points)..., attractor.dt)
         end
         @printf(io, "\n%s = %.4f", name, getfield(attractor, name))
