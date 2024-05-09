@@ -4,22 +4,27 @@ const AttractorSet = Union{Attractor, Vector{<:Attractor}}
 
 function evolve!(attractor!)
     (; x, y, z, dt) = attractor!
-    r = (x, y, z)
-    dr_dt = attractor!(x, y, z)
-    r_m = @. r + dr_dt * dt * 0.5
-    dr_dt = attractor!(r_m...)
-    x_n, y_n, z_n = @. r + dr_dt * dt
-    push!(attractor!.points, Point3(x_n, y_n, z_n))
-    attractor!.x = x_n
-    attractor!.y = y_n
-    attractor!.z = z_n
+    r0 = (x, y, z)
+    dt2 = dt * 0.5
+    k1 = attractor!(x, y, z)
+    r1 = @. r0 + k1 * dt2
+    k2 = attractor!(r1...)
+    r2 = @. r0 + k2 * dt2
+    k3 = attractor!(r2...)
+    r3 = @. r0 + k3 * dt
+    k4 = attractor!(r3...)
+    x4, y4, z4 = @. r0 + (k1 + 2k2 + 2k3 + k4) * dt / 6
+    push!(attractor!.points, Point3(x4, y4, z4))
+    attractor!.x = x4
+    attractor!.y = y4
+    attractor!.z = z4
     attractor!.t += dt
 end
 
 macro fields()
     quote
          t::Float64 = 0.0
-        dt::Float64 = 0.002
+        dt::Float64 = 0.001
         fig::Figure = Figure()
         points::Vector{Point3{Float64}} = [Point3(x, y, z)]
         state::State = State()
