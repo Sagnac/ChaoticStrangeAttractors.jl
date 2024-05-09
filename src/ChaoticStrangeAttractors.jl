@@ -114,7 +114,7 @@ function set!(attractors::AttractorSet)
     end
     attractor.state.axis = Axis3(fig[1,1]; title)
     init!(attractors)
-    display(GLMakie.Screen(), fig)
+    display(fig)
     return title
 end
 

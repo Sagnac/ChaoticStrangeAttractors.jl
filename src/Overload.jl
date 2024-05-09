@@ -12,7 +12,7 @@ function recap(io::IO, attractor::T) where T <: Attractor
         @printf(io, "\n%s = %.4f", name, getfield(attractor, name))
     end
     (isempty(fig.content) || events(fig).window_open[]) && return
-    display(GLMakie.Screen(), fig)
+    display(fig)
 end
 
 function show_params(io::IO, attractor::T) where T <: Attractor
@@ -37,7 +37,7 @@ function display(attractors::Vector{<:Attractor})
         println()
     end
     (isempty(fig.content) || events(fig).window_open[]) && return
-    display(GLMakie.Screen(), fig)
+    display(fig)
 end
 
 getindex(attractor::Attractor) = attractor
