@@ -56,17 +56,17 @@ function (cycle::Colors)()
     cycle.selection = (line_selection, point_selection)
 end
 
-function unroll!(attractor!::Attractor)
-    (; segments, position, axis, colors) = attractor!.state
-    for i = 1:div(interval, attractor!.dt)
-        evolve!(attractor!)
+function unroll!(attractor::Attractor)
+    (; segments, position, axis, colors) = attractor.state
+    for i = 1:div(interval, attractor.dt)
+        evolve!(attractor)
     end
     delete!(axis, segments)
     delete!(axis, position)
-    segments = lines!(axis, attractor!.points; color = colors[1])
-    position = scatter!(axis, last(attractor!.points); color = colors[2])
-    attractor!.state.segments = segments
-    attractor!.state.position = position
+    segments = lines!(axis, attractor.points; color = colors[1])
+    position = scatter!(axis, last(attractor.points); color = colors[2])
+    attractor.state.segments = segments
+    attractor.state.position = position
     return
 end
 
