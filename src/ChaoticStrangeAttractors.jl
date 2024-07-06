@@ -5,6 +5,7 @@ export attract!, Attractor, cycle_colors, Instantiate,
 
 using Printf
 using GLMakie
+using .Makie: Point3d
 using .Iterators: peel
 
 const interval = 0.05
