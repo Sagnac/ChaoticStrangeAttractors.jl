@@ -15,8 +15,8 @@ struct Instantiate
 end
 
 mutable struct State
-    segments::Lines{Tuple{Vector{Point3f}}}
-    position::Scatter{Tuple{Vector{Point3f}}}
+    segments::Lines{Tuple{Vector{Point3d}}}
+    position::Scatter{Tuple{Vector{Point3d}}}
     axis::Axis3
     colors::Tuple{RGBf, RGBf}
     timers::Vector{Timer}
